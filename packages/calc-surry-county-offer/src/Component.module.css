@@ -1,0 +1,143 @@
+.layout {
+  max-width: 70rem;
+  margin: 0 auto;
+  font-size: 0.92rem;
+}
+
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.heading {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+  color: #2d6a4f;
+}
+
+.subtitle {
+  margin: 0;
+  color: #6b8068;
+  font-size: 0.85rem;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #dde5dc;
+  border-radius: 10px;
+  padding: 1rem 1.125rem;
+}
+
+.cardTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2d6a4f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-bottom: 0.5rem;
+  margin: 0 0 0.75rem;
+  border-bottom: 2px solid #d8f3dc;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.results {
+  margin: 1rem 0;
+}
+
+.sectionHeading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2d6a4f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5rem;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.tableGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.note {
+  font-size: 0.78rem;
+  color: #6b8068;
+  margin: 0.5rem 0 0;
+}
+
+.scrollX {
+  overflow-x: auto;
+}
+
+.scTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.scTable th,
+.scTable td {
+  text-align: right;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.scTable th:first-child,
+.rowLabel {
+  text-align: left;
+  font-weight: 500;
+}
+
+.cellNum {
+  font-variant-numeric: tabular-nums;
+}
+
+.hlCol {
+  background: #edf7f0;
+}
+
+.customCol {
+  background: #eef2fc;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.chartWrap {
+  position: relative;
+  height: 16rem;
+}
+
+@media (max-width: 860px) {
+  .inputGrid,
+  .tableGrid,
+  .chartsGrid,
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

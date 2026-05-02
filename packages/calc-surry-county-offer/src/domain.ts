@@ -33,6 +33,8 @@ export type OfferInputs = {
 };
 
 export type ScenarioOutput = {
+  /** Mirror of the offerPrice input — convenient for scenario tables. */
+  offerPrice: number;
   netProceeds: number;
   downAmt: number;
   loan: number;
@@ -170,6 +172,7 @@ export function computeOffer(inputs: OfferInputs): ComputeOfferResult {
   return {
     ok: true,
     result: {
+      offerPrice: inputs.offerPrice,
       netProceeds,
       downAmt,
       loan,
