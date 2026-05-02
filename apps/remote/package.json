@@ -20,6 +20,7 @@
     "calc-lgs-dscr": "workspace:*",
     "calc-olamina-dscr": "workspace:*",
     "calc-surry-county-offer": "workspace:*",
+    "calc-winston-salem-lvt": "workspace:*",
     "react-router-dom": "^7.1.0"
   },
   "peerDependencies": {

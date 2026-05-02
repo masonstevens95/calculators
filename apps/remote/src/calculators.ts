@@ -7,6 +7,7 @@ import SurryCountyOffer from 'calc-surry-county-offer';
 import LgsDscr from 'calc-lgs-dscr';
 import OlaminaDscr from 'calc-olamina-dscr';
 import Eu5Loan from 'calc-eu5-loan';
+import WinstonSalemLvt from 'calc-winston-salem-lvt';
 
 export type CalcDescriptor = {
   slug: string;
@@ -46,6 +47,7 @@ export const calculators: readonly CalcDescriptor[] = [
     slug: 'winston-salem-lvt',
     title: 'Winston-Salem LVT',
     blurb: 'Land Value Tax modelling: per-parcel bills under different split ratios.',
+    Component: WinstonSalemLvt,
   },
   {
     slug: 'birchwood-rent-sell',

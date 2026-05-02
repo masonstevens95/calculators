@@ -98,6 +98,9 @@ importers:
       calc-surry-county-offer:
         specifier: workspace:*
         version: link:../../packages/calc-surry-county-offer
+      calc-winston-salem-lvt:
+        specifier: workspace:*
+        version: link:../../packages/calc-winston-salem-lvt
       react:
         specifier: ^19.0.0
         version: 19.2.5
@@ -158,6 +161,27 @@ importers:
         version: link:../calc-lgs-dscr
 
   packages/calc-surry-county-offer:
+    dependencies:
+      '@calc/charts':
+        specifier: workspace:*
+        version: link:../charts
+      '@calc/domain-utils':
+        specifier: workspace:*
+        version: link:../domain-utils
+      '@calc/ui':
+        specifier: workspace:*
+        version: link:../ui
+      chart.js:
+        specifier: ^4.4.0
+        version: 4.5.1
+      react:
+        specifier: ^19.0.0
+        version: 19.2.5
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.5(react@19.2.5)
+
+  packages/calc-winston-salem-lvt:
     dependencies:
       '@calc/charts':
         specifier: workspace:*
