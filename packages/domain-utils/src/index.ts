@@ -4,4 +4,5 @@ export { formatCurrency } from './format/currency';
 export { formatPercent } from './format/percent';
 export { formatNumber } from './format/number';
 export { required } from './validate/required';
+export { positive } from './validate/positive';
 export type { ValidationResult } from './validate/types';
