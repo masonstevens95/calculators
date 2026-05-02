@@ -1,0 +1,6 @@
+.planning/
+node_modules/
+*.log
+.DS_Store
+old_calcs/
+.claude/settings.local.json
