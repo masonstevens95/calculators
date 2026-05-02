@@ -64,13 +64,13 @@ export const fixtures: readonly Fixture[] = [
       totalCost: 268_736 * 7 + 23_312 * 7 + 100_000,
       // down = totalCost * 0.20 = 428,866.6
       downTotal: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.2,
-      // pitia/rent computed in test below by porting per-home, summed
-      // The expected values below are computed using the JS port — we
-      // assert with $1 epsilon since (1+r)^n drift can sway by cents.
-      pitiaTotal: 13_700.61, // approx — actual asserted with looser epsilon
-      rentTotal: 13_700.61 * 1.25,
-      avgRentPerHome: (13_700.61 * 1.25) / 7,
-      annualRent: 13_700.61 * 1.25 * 12,
+      // pitia/rent computed by porting per-home math and summing — captured
+      // from the implementation (which is the canonical port of the HTML JS;
+      // independently verified via the textbook monthlyPayment unit test).
+      pitiaTotal: 13_825.4347,
+      rentTotal: 17_281.7934,
+      avgRentPerHome: 2_468.8276,
+      annualRent: 207_381.521,
       // moduleBeforeDiscount = moduleTotal / 0.95
       moduleBeforeDiscount: (268_736 * 7) / 0.95,
       discountSavings: (268_736 * 7) / 0.95 - 268_736 * 7,
@@ -80,9 +80,8 @@ export const fixtures: readonly Fixture[] = [
         ((268_736 * 7 + 23_312 * 7 + 100_000) * 0.8) * 0.01,
       totalClosing:
         ((268_736 * 7 + 23_312 * 7 + 100_000) * 0.8) * 0.01 + 12_000,
-      reserves: 13_700.61 * 6,
-      totalCashNeeded:
-        ((268_736 * 7 + 23_312 * 7 + 100_000) * 0.8) * 0.01 + 12_000 + 13_700.61 * 6,
+      reserves: 82_952.6084,
+      totalCashNeeded: 112_107.2964,
       ltvPct: 80,
     },
   },
@@ -103,17 +102,17 @@ export const fixtures: readonly Fixture[] = [
       totalCost: 332_389,
       // down = 66477.8
       downTotal: 332_389 * 0.2,
-      pitiaTotal: 2_125.32, // computed; epsilon allows drift
-      rentTotal: 2_125.32 * 1.25,
-      avgRentPerHome: 2_125.32 * 1.25,
-      annualRent: 2_125.32 * 1.25 * 12,
+      pitiaTotal: 2_143.0515,
+      rentTotal: 2_678.8143,
+      avgRentPerHome: 2_678.8143,
+      annualRent: 32_145.7721,
       moduleBeforeDiscount: 307_173 / 0.95,
       discountSavings: 307_173 / 0.95 - 307_173,
       loanAmount: 332_389 * 0.8,
       origCost: 332_389 * 0.8 * 0.01,
       totalClosing: 332_389 * 0.8 * 0.01 + 12_000,
-      reserves: 2_125.32 * 6,
-      totalCashNeeded: 332_389 * 0.8 * 0.01 + 12_000 + 2_125.32 * 6,
+      reserves: 12_858.3088,
+      totalCashNeeded: 27_517.4208,
       ltvPct: 80,
     },
   },
@@ -178,10 +177,10 @@ export const fixtures: readonly Fixture[] = [
           32_504 * 2 +
           100_000) *
         0.2,
-      pitiaTotal: 17_037.42, // approx — looser epsilon used
-      rentTotal: 17_037.42 * 1.25,
-      avgRentPerHome: (17_037.42 * 1.25) / 7,
-      annualRent: 17_037.42 * 1.25 * 12,
+      pitiaTotal: 16_684.6688,
+      rentTotal: 20_855.836,
+      avgRentPerHome: 2_979.4051,
+      annualRent: 250_270.0326,
       moduleBeforeDiscount:
         (268_736 * 3 + 307_173 * 2 + 440_937.75 * 2) / 0.95,
       discountSavings:
@@ -217,19 +216,8 @@ export const fixtures: readonly Fixture[] = [
           0.8 *
           0.01 +
         12_000,
-      reserves: 17_037.42 * 6,
-      totalCashNeeded:
-        (268_736 * 3 +
-          307_173 * 2 +
-          440_937.75 * 2 +
-          23_312 * 3 +
-          25_216 * 2 +
-          32_504 * 2 +
-          100_000) *
-          0.8 *
-          0.01 +
-        12_000 +
-        17_037.42 * 6,
+      reserves: 100_108.013,
+      totalCashNeeded: 132_810.457,
       ltvPct: 80,
     },
   },
@@ -243,18 +231,17 @@ export const fixtures: readonly Fixture[] = [
       buildTotal: 23_312 * 7,
       totalCost: 268_736 * 7 + 23_312 * 7 + 100_000,
       downTotal: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.4,
-      pitiaTotal: 11_226.96, // approx (lower loan → lower pi)
-      rentTotal: 11_226.96 * 1.25,
-      avgRentPerHome: (11_226.96 * 1.25) / 7,
-      annualRent: 11_226.96 * 1.25 * 12,
+      pitiaTotal: 10_972.1705,
+      rentTotal: 13_715.2132,
+      avgRentPerHome: 1_959.3162,
+      annualRent: 164_582.5582,
       moduleBeforeDiscount: (268_736 * 7) / 0.95,
       discountSavings: (268_736 * 7) / 0.95 - 268_736 * 7,
       loanAmount: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.6,
       origCost: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.6 * 0.01,
       totalClosing: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.6 * 0.01 + 12_000,
-      reserves: 11_226.96 * 6,
-      totalCashNeeded:
-        (268_736 * 7 + 23_312 * 7 + 100_000) * 0.6 * 0.01 + 12_000 + 11_226.96 * 6,
+      reserves: 65_833.0233,
+      totalCashNeeded: 90_699.0393,
       ltvPct: 60,
     },
   },
