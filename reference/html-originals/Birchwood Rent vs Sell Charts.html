@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birchwood — Rent vs. Sell Charts</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #111827;
+      --surface: #1f2937;
+      --card: #111827;
+      --accent: #ef4444;
+      --teal: #14b8a6;
+      --yellow: #f59e0b;
+      --blue: #3b82f6;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: #374151;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 28px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.3rem; font-weight: 700; }
+    .subtitle { color: var(--muted); font-size: 0.82rem; margin-top: 3px; margin-bottom: 24px; }
+
+    /* ── Inputs ── */
+    .inputs {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+    .inp-group label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+    .inp-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--teal); cursor: pointer; }
+    .val { font-size: 0.9rem; font-weight: 700; min-width: 58px; text-align: right; color: var(--text); }
+    select {
+      width: 100%;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    /* ── Stats strip ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.55rem; font-weight: 800; line-height: 1; }
+    .stat-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 5px; line-height: 1.3; }
+    .green { color: var(--teal); }
+    .yellow { color: var(--yellow); }
+    .red { color: var(--accent); }
+    .blue { color: var(--blue); }
+
+    /* ── Charts grid ── */
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 750px) { .charts { grid-template-columns: 1fr; } }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 18px 14px;
+    }
+    .chart-title { font-size: 0.92rem; font-weight: 700; margin-bottom: 2px; }
+    .chart-desc { font-size: 0.74rem; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
+    canvas { max-height: 250px; }
+
+    /* ── Section 121 card ── */
+    .s121-inner { margin-top: 8px; }
+    .timeline-track {
+      height: 10px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 10px 0 5px;
+    }
+    .timeline-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--teal) 0%, var(--yellow) 60%, var(--accent) 100%);
+      transition: width 0.4s;
+    }
+    .tl-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); }
+    .s121-note { font-size: 0.78rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+    .callout {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+    .callout.good {
+      background: rgba(20,184,166,0.1);
+      border-color: rgba(20,184,166,0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Birchwood — Rent vs. Sell Analysis</h1>
+  <p class="subtitle">2931 Birchwood · Sale price ~$305k · Mortgage $162,317 @ 3.75% · Estimated market rent $2,000/mo · 5 years lived in</p>
+
+  <!-- Inputs -->
+  <div class="inputs">
+    <div class="inp-group">
+      <label>Monthly Rent</label>
+      <div class="inp-row">
+        <input type="range" id="rent" min="1200" max="3200" step="25" value="2000">
+        <span class="val" id="rentVal">$2,000</span>
+      </div>
+    </div>
+    <div class="inp-group">
+      <label>Management Type</label>
+      <select id="mgmt">
+        <option value="managed">Property managed (9%)</option>
+        <option value="self">Self-managed</option>
+      </select>
+    </div>
+    <div class="inp-group">
+      <label>Home Appreciation / yr</label>
+      <div class="inp-row">
+        <input type="range" id="appRate" min="0" max="7" step="0.5" value="2">
+        <span class="val" id="appVal">2.0%</span>
+      </div>
+    </div>
+    <div class="inp-group">
+      <label>Investment Return / yr</label>
+      <div class="inp-row">
+        <input type="range" id="invRate" min="2" max="12" step="0.5" value="7">
+        <span class="val" id="invVal">7.0%</span>
+      </div>
+    </div>
+    <div class="inp-group">
+      <label>Move-out Year</label>
+      <div class="inp-row">
+        <input type="range" id="moveout" min="2026" max="2030" step="1" value="2026">
+        <span class="val" id="moveoutVal">2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats" id="stats"></div>
+
+  <!-- Charts 2x2 -->
+  <div class="charts">
+
+    <!-- Chart 1: Cash flow vs rent -->
+    <div class="chart-card">
+      <div class="chart-title">Monthly Cash Flow vs. Rent</div>
+      <div class="chart-desc">Net cash flow after all expenses at each rent level. Where the line crosses $0 is your break-even rent.</div>
+      <canvas id="cfChart"></canvas>
+    </div>
+
+    <!-- Chart 2: 10-year wealth -->
+    <div class="chart-card">
+      <div class="chart-title">10-Year Wealth: Sell vs. Rent</div>
+      <div class="chart-desc">Sell path = net proceeds invested at the chosen return rate. Rent path = home equity + cumulative cash flow. Note: rent equity is illiquid until sale.</div>
+      <canvas id="wealthChart"></canvas>
+    </div>
+
+    <!-- Chart 3: Appreciation sensitivity -->
+    <div class="chart-card">
+      <div class="chart-title">Appreciation Rate Sensitivity (Year 10)</div>
+      <div class="chart-desc">At each home appreciation rate, how much does rent beat (green) or trail (red) selling + investing at the chosen return rate?</div>
+      <canvas id="sensChart"></canvas>
+    </div>
+
+    <!-- Chart 4: Section 121 timeline -->
+    <div class="chart-card">
+      <div class="chart-title">Section 121 Tax Exclusion Window</div>
+      <div class="chart-desc">Sell within 3 years of move-out to keep the $250k capital gains exclusion. Adjust the move-out year above.</div>
+      <div class="s121-inner" id="s121"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Fixed inputs ─────────────────────────────────
+    const BALANCE    = 162317.07;
+    const RATE       = 0.0375;
+    const MONTHLY_PI = 825.74;
+    const TAXES      = 280;
+    const INSURANCE  = 275;    // landlord policy
+    const MAINT      = 254;    // 1% × $305k ÷ 12
+    const HOME_VAL   = 305000;
+    const NET_PROC   = 122858; // after commission + closing + mortgage payoff
+    const CURRENT_YR = 2026;
+
+    // Fixed monthly carrying cost (no management, no vacancy)
+    const FIXED = MONTHLY_PI + TAXES + INSURANCE + MAINT; // $1,635
+
+    // ── Helpers ───────────────────────────────────────
+    function monthlyCF(rent, managed) {
+      const mgmt    = managed ? 0.09 * rent : 0;
+      const vacancy = 0.08 * rent;
+      return rent - FIXED - mgmt - vacancy;
+    }
+
+    function breakEvenRent(managed) {
+      // CF = rent×(1 - mgmt_rate - 0.08) - FIXED = 0
+      const rate = managed ? (1 - 0.09 - 0.08) : (1 - 0.08);
+      return FIXED / rate;
+    }
+
+    // Remaining mortgage balance after N months
+    function remBalance(months) {
+      let b = BALANCE;
+      const mr = RATE / 12;
+      for (let i = 0; i < months; i++) {
+        b -= (MONTHLY_PI - b * mr);
+        if (b < 0) return 0;
+      }
+      return Math.max(0, b);
+    }
+
+    function fmt(n) {
+      const abs = Math.abs(n);
+      const sign = n < 0 ? '-' : '';
+      if (abs >= 1e6)   return sign + '$' + (abs / 1e6).toFixed(2) + 'M';
+      if (abs >= 1000)  return sign + '$' + Math.round(abs).toLocaleString();
+      return sign + '$' + Math.round(abs);
+    }
+
+    // ── Chart.js shared options ───────────────────────
+    const baseOpts = {
+      responsive: true,
+      animation: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ' ' + fmt(ctx.parsed.y) } }
+      },
+      scales: {
+        x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
+        y: { ticks: { color: '#6b7280', font: { size: 10 }, callback: v => fmt(v) }, grid: { color: '#374151' } }
+      }
+    };
+
+    // ── Chart 1: Cash flow vs rent ────────────────────
+    const cfChart = new Chart(document.getElementById('cfChart'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Managed (9%)',  data: [], borderColor: '#14b8a6', backgroundColor: 'rgba(20,184,166,.07)', tension: 0.15, pointRadius: 0, borderWidth: 2 },
+          { label: 'Self-managed',  data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.07)',  tension: 0.15, pointRadius: 0, borderWidth: 2 },
+          { label: 'Break-even',    data: [], borderColor: '#ef4444', borderDash: [5,4], borderWidth: 1.5,      pointRadius: 0, fill: false }
+        ]
+      },
+      options: baseOpts
+    });
+
+    // ── Chart 2: Wealth over 10 years ────────────────
+    const wealthChart = new Chart(document.getElementById('wealthChart'), {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: 11 }, (_, i) => 'Yr ' + i),
+        datasets: [
+          { label: 'Sell → invest proceeds', data: [], borderColor: '#14b8a6', backgroundColor: 'rgba(20,184,166,.07)', tension: 0.3, pointRadius: 2, borderWidth: 2 },
+          { label: 'Rent (equity + cash flow)', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.07)',  tension: 0.3, pointRadius: 2, borderWidth: 2 }
+        ]
+      },
+      options: baseOpts
+    });
+
+    // ── Chart 3: Sensitivity bar ──────────────────────
+    const sensChart = new Chart(document.getElementById('sensChart'), {
+      type: 'bar',
+      data: {
+        labels: ['0%','1%','2%','3%','4%','5%','6%','7%'],
+        datasets: [{
+          label: 'Rent − Sell at Yr 10',
+          data: [],
+          backgroundColor: [],
+          borderRadius: 4,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        ...baseOpts,
+        plugins: {
+          ...baseOpts.plugins,
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const v = ctx.parsed.y;
+                return (v >= 0 ? ' Rent ahead by ' : ' Sell ahead by ') + fmt(Math.abs(v));
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // ── Main update ───────────────────────────────────
+    function update() {
+      const rent    = +document.getElementById('rent').value;
+      const managed = document.getElementById('mgmt').value === 'managed';
+      const appRate = +document.getElementById('appRate').value / 100;
+      const invRate = +document.getElementById('invRate').value / 100;
+      const moveout = +document.getElementById('moveout').value;
+
+      // Update display labels
+      document.getElementById('rentVal').textContent    = '$' + rent.toLocaleString();
+      document.getElementById('appVal').textContent     = (+document.getElementById('appRate').value).toFixed(1) + '%';
+      document.getElementById('invVal').textContent     = (+document.getElementById('invRate').value).toFixed(1) + '%';
+      document.getElementById('moveoutVal').textContent = moveout;
+
+      const cf    = monthlyCF(rent, managed);
+      const beR   = breakEvenRent(managed);
+
+      // ── Chart 1 ──
+      const labels = [], cfM = [], cfS = [], zeros = [];
+      for (let r = 1200; r <= 3200; r += 50) {
+        labels.push('$' + r.toLocaleString());
+        cfM.push(monthlyCF(r, true));
+        cfS.push(monthlyCF(r, false));
+        zeros.push(0);
+      }
+      cfChart.data.labels = labels;
+      cfChart.data.datasets[0].data = cfM;
+      cfChart.data.datasets[1].data = cfS;
+      cfChart.data.datasets[2].data = zeros;
+      cfChart.update();
+
+      // ── Chart 2 ──
+      const sellW = [], rentW = [];
+      let cumCF = 0;
+      for (let yr = 0; yr <= 10; yr++) {
+        sellW.push(NET_PROC * Math.pow(1 + invRate, yr));
+        const homeVal = HOME_VAL * Math.pow(1 + appRate, yr);
+        const equity  = homeVal - remBalance(yr * 12);
+        cumCF += cf * 12;
+        rentW.push(equity + cumCF);
+      }
+      wealthChart.data.datasets[0].data = sellW;
+      wealthChart.data.datasets[1].data = rentW;
+      wealthChart.update();
+
+      // ── Chart 3 ──
+      const apRates = [0,1,2,3,4,5,6,7];
+      const sensData  = [];
+      const sensColor = [];
+      const sellW10 = NET_PROC * Math.pow(1 + invRate, 10);
+      for (const ar of apRates) {
+        const hv10  = HOME_VAL * Math.pow(1 + ar / 100, 10);
+        const eq10  = hv10 - remBalance(120);
+        const cf10  = cf * 12 * 10; // simplified: constant rent
+        const delta = (eq10 + cf10) - sellW10;
+        sensData.push(delta);
+        sensColor.push(delta >= 0 ? 'rgba(20,184,166,0.85)' : 'rgba(239,68,68,0.85)');
+      }
+      sensChart.data.datasets[0].data = sensData;
+      sensChart.data.datasets[0].backgroundColor = sensColor;
+      sensChart.update();
+
+      // ── Stats strip ──
+      const rentW10actual = rentW[10];
+      const sellW10actual = sellW[10];
+      const rentWins = rentW10actual > sellW10actual;
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-val ${cf >= 0 ? 'green' : 'red'}">${fmt(cf)}/mo</div>
+          <div class="stat-lbl">Net cash flow at $${rent.toLocaleString()} rent<br>(${managed ? 'managed' : 'self-managed'})</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val yellow">${fmt(beR)}/mo</div>
+          <div class="stat-lbl">Break-even rent<br>(${managed ? 'managed 9%' : 'self-managed'})</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val ${rentWins ? 'green' : 'red'}">${fmt(Math.abs(rentW10actual - sellW10actual))}</div>
+          <div class="stat-lbl">${rentWins ? 'Rent ahead' : 'Sell ahead'} at Year 10<br>(${(+document.getElementById('appRate').value).toFixed(1)}% app / ${(+document.getElementById('invRate').value).toFixed(1)}% inv)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val blue">$${(1635).toLocaleString()}/mo</div>
+          <div class="stat-lbl">Fixed carrying costs<br>(P+I, taxes, ins, maint)</div>
+        </div>
+      `;
+
+      // ── Section 121 box ──
+      const deadline = moveout + 3;
+      const yearsLeft = deadline - CURRENT_YR;
+      const elapsed = Math.max(0, CURRENT_YR - moveout);
+      const pct = Math.min(100, Math.max(0, (elapsed / 3) * 100));
+      const urgency = yearsLeft <= 1
+        ? `<div class="callout">⚠️ Less than 1 year remaining on the exclusion window. Sell soon or you'll owe up to ~$37k in capital gains tax.</div>`
+        : yearsLeft <= 2
+        ? `<div class="callout">⚠️ ~${yearsLeft} years remaining. Don't let renting drift past the deadline.</div>`
+        : `<div class="callout good">✓ ${yearsLeft} years remaining. You have time — but keep the ${deadline} deadline in mind if you decide to rent first.</div>`;
+
+      document.getElementById('s121').innerHTML = `
+        <p style="font-size:0.83rem; margin-top:8px;">
+          Move out <strong>${moveout}</strong> → sell by <strong style="color:#ef4444">${deadline}</strong> to exclude up to $250k in capital gains (single filer).
+        </p>
+        <div class="timeline-track">
+          <div class="timeline-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="tl-labels">
+          <span>${moveout}</span><span>${moveout+1}</span><span>${moveout+2}</span>
+          <span style="color:#ef4444; font-weight:700;">${deadline}</span>
+        </div>
+        ${urgency}
+        <p class="s121-note">
+          Without exclusion: if your cost basis is ~$200k and sale price is $305k, gain ≈ $105k → $15,750 in federal taxes at 15% LTCG. If basis is lower and gain approaches $250k, exposure rises to ~$37,500. Fill in purchase price in the Sell vs. Rent note to get your exact number.
+        </p>
+      `;
+    }
+
+    // ── Wire up inputs ────────────────────────────────
+    ['rent','appRate','invRate','moveout'].forEach(id =>
+      document.getElementById(id).addEventListener('input', update)
+    );
+    document.getElementById('mgmt').addEventListener('change', update);
+
+    update();
+  </script>
+</body>
+</html>

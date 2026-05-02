@@ -1,7 +1,7 @@
 ---
 title: Calculators Microfrontend — React Rebuild
 type: feat
-status: active
+status: completed
 date: 2026-05-01
 origin: docs/brainstorms/2026-05-01-calculators-microfrontend-requirements.md
 ---

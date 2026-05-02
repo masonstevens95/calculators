@@ -1,0 +1,55 @@
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+
+.skipLink:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  outline: 2px solid #fff;
+}
+
+.header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.brandLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.brandLink:hover,
+.brandLink:focus {
+  text-decoration: underline;
+}
+
+.main {
+  padding: 1.5rem;
+  min-height: calc(100vh - 8rem);
+  outline: none;
+}
+
+.footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  background: #fafafa;
+}

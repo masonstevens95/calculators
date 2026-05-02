@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surry County Offer Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --green:       #2d6a4f;
+  --green-mid:   #40916c;
+  --green-light: #52b788;
+  --green-pale:  #d8f3dc;
+  --amber:       #e76f51;
+  --amber-light: #f4a261;
+  --red:         #c62828;
+  --bg:          #f4f6f4;
+  --card:        #ffffff;
+  --border:      #dde5dc;
+  --text:        #1a2e1a;
+  --muted:       #6b8068;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 24px;
+  font-size: 14px;
+}
+
+h1 { font-size: 1.4rem; color: var(--green); margin-bottom: 4px; }
+.subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--green-pale);
+}
+
+/* Input fields */
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 0.76rem; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+
+input[type="number"] {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: #fafcfa;
+}
+input[type="number"]:focus { outline: none; border-color: var(--green-light); box-shadow: 0 0 0 2px rgba(82,183,136,0.18); }
+
+.field-row { display: flex; gap: 8px; align-items: center; }
+.field-row input[type="number"] { width: 88px; flex-shrink: 0; }
+.field-row input[type="range"] { flex: 1; accent-color: var(--green); cursor: pointer; }
+
+/* Proceeds highlight */
+.proceeds-display {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--green-pale);
+  border-radius: 8px;
+}
+.proceeds-display .label { font-size: 0.76rem; color: var(--green); font-weight: 600; margin-bottom: 2px; }
+.proceeds-display .value { font-size: 1.5rem; font-weight: 800; color: var(--green); }
+
+/* Metrics strip */
+.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+.metric {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  text-align: center;
+}
+.metric-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+.metric-value { font-size: 1.2rem; font-weight: 800; color: var(--green); }
+.metric-value.neg { color: var(--red); }
+.metric-value.warn { color: var(--amber); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+th {
+  text-align: left;
+  padding: 7px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border);
+}
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--border); border-bottom: none; padding-top: 9px; }
+.ra { text-align: right; }
+.green { color: var(--green); }
+.amber { color: var(--amber); }
+.red { color: var(--red); }
+
+/* Scenario comparison */
+.sc-wrap { overflow-x: auto; margin-top: 0; }
+.sc-table th { text-align: right; }
+.sc-table th:first-child { text-align: left; min-width: 160px; }
+.sc-table td { text-align: right; }
+.sc-table td:first-child { text-align: left; font-weight: 500; }
+.sc-table .hl { background: #edf7f0; }
+.sc-table .custom-col { background: #eef2fc; }
+
+/* Charts */
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.chart-wrap { position: relative; height: 260px; }
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.badge-green { background: var(--green-pale); color: var(--green); }
+.badge-amber { background: #fff3e0; color: var(--amber); }
+.badge-red   { background: #ffebee; color: var(--red); }
+
+/* Concession limit warning */
+.limit-note { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+.limit-note.warn { color: var(--amber); font-weight: 600; }
+.limit-note.err  { color: var(--red);   font-weight: 600; }
+
+/* Divider */
+.section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 20px 0 10px;
+}
+
+@media (max-width: 860px) {
+  .grid2, .grid3, .metrics, .charts { grid-template-columns: 1fr; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<h1>🌿 Surry County Offer Calculator</h1>
+<p class="subtitle">Analyze seller concession scenarios and cash flow for rural property purchase after Birchwood sale</p>
+
+<!-- ── Inputs ── -->
+<div class="grid2">
+
+  <!-- Birchwood Sale -->
+  <div class="card">
+    <div class="card-title">Birchwood Sale</div>
+
+    <div class="field">
+      <label>Sale Price</label>
+      <div class="field-row">
+        <input type="range" id="salePrice" min="220000" max="380000" step="5000" value="280000" oninput="sync('salePrice','salePriceN')">
+        <input type="number" id="salePriceN" value="280000" step="5000" oninput="sync('salePriceN','salePrice')">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Mortgage Payoff ($)</label>
+      <input type="number" id="payoff" value="163000" step="1000" oninput="calc()">
+    </div>
+
+    <div class="field">
+      <label>Realtor Commission (%)</label>
+      <div class="field-row">
+        <input type="range" id="realtorPct" min="3" max="7" step="0.5" value="6" oninput="sync('realtorPct','realtorPctN')">
+        <input type="number" id="realtorPctN" value="6" step="0.5" oninput="sync('realtorPctN','realtorPct')">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Transfer &amp; Closing Costs, sell side (%)</label>
+      <div class="field-row">
+        <input type="range" id="transferPct" min="0.5" max="2" step="0.25" value="1" oninput="sync('transferPct','transferPctN')">
+        <input type="number" id="transferPctN" value="1" step="0.25" oninput="sync('transferPctN','transferPct')">
+      </div>
+    </div>
+
+    <div class="proceeds-display">
+      <div class="label">Net Proceeds (after payoff + costs)</div>
+      <div class="value" id="netProceedsDisplay">$97,400</div>
+    </div>
+  </div>
+
+  <!-- Offer Parameters -->
+  <div class="card">
+    <div class="card-title">Offer Parameters</div>
+
+    <div class="field">
+      <label>Offer Price (inflate for concession)</label>
+      <div class="field-row">
+        <input type="range" id="offerPrice" min="300000" max="550000" step="5000" value="415000" oninput="sync('offerPrice','offerPriceN')">
+        <input type="number" id="offerPriceN" value="415000" step="5000" oninput="sync('offerPriceN','offerPrice')">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Down Payment (%)</label>
+      <div class="field-row">
+        <input type="range" id="downPct" min="5" max="45" step="1" value="25" oninput="sync('downPct','downPctN')">
+        <input type="number" id="downPctN" value="25" step="1" oninput="sync('downPctN','downPct')">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Seller Concession (%)</label>
+      <div class="field-row">
+        <input type="range" id="concPct" min="0" max="12" step="0.5" value="9" oninput="sync('concPct','concPctN')">
+        <input type="number" id="concPctN" value="9" step="0.5" oninput="sync('concPctN','concPct')">
+      </div>
+      <div class="limit-note" id="concLimit"></div>
+    </div>
+
+    <div class="field">
+      <label>Mortgage Rate (% / 30yr fixed)</label>
+      <div class="field-row">
+        <input type="range" id="rate" min="4" max="10" step="0.125" value="6.75" oninput="sync('rate','rateN')">
+        <input type="number" id="rateN" value="6.75" step="0.125" oninput="sync('rateN','rate')">
+      </div>
+    </div>
+
+    <div class="grid2" style="gap:8px; margin-top:2px;">
+      <div class="field">
+        <label>Property Tax (%/yr, Surry)</label>
+        <input type="number" id="taxRate" value="0.65" step="0.05" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Insurance (%/yr)</label>
+        <input type="number" id="insRate" value="0.45" step="0.05" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:4px;">
+      <label>Buyer Closing Costs (% of offer)</label>
+      <div class="field-row">
+        <input type="range" id="closingPct" min="1.5" max="4" step="0.25" value="2.5" oninput="sync('closingPct','closingPctN')">
+        <input type="number" id="closingPctN" value="2.5" step="0.25" oninput="sync('closingPctN','closingPct')">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Equipment Budget ($)</label>
+      <input type="number" id="equipment" value="25000" step="1000" oninput="calc()">
+    </div>
+  </div>
+</div>
+
+<!-- ── Key Metrics ── -->
+<div class="metrics">
+  <div class="metric">
+    <div class="metric-label">Net Proceeds</div>
+    <div class="metric-value" id="m-proceeds">$97,400</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Loan Amount</div>
+    <div class="metric-value" id="m-loan">$311,250</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">PITI / mo</div>
+    <div class="metric-value" id="m-piti">$2,401</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Repair Cash</div>
+    <div class="metric-value" id="m-repair">$26,975</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Final Reserve</div>
+    <div class="metric-value" id="m-reserve">–$4,375</div>
+  </div>
+</div>
+
+<!-- ── Breakdowns ── -->
+<div class="grid2">
+
+  <!-- Concession breakdown -->
+  <div class="card">
+    <div class="card-title">Concession → Cash Breakdown</div>
+    <table>
+      <tbody>
+        <tr><td>Offer price</td>                             <td class="ra" id="b-offer">$415,000</td></tr>
+        <tr><td>Seller concession (<span id="b-cpct">9</span>%)</td> <td class="ra green" id="b-conc">+$37,350</td></tr>
+        <tr><td>→ Buyer closing costs (<span id="b-clpct">2.5</span>%)</td><td class="ra red" id="b-close">–$10,375</td></tr>
+        <tr class="total"><td>→ Repair / flexible cash</td> <td class="ra" id="b-repair">$26,975</td></tr>
+      </tbody>
+    </table>
+    <div class="limit-note" style="margin-top:10px;">LTV: <strong id="b-ltv">75.0%</strong> &nbsp;|&nbsp; <span id="b-pmi"></span></div>
+  </div>
+
+  <!-- Proceeds allocation -->
+  <div class="card">
+    <div class="card-title">Proceeds Allocation</div>
+    <table>
+      <tbody>
+        <tr><td>Net sale proceeds</td>                        <td class="ra" id="cf-proceeds">$97,400</td></tr>
+        <tr><td>– Down payment</td>                           <td class="ra red" id="cf-down">–$103,750</td></tr>
+        <tr><td>= Proceeds after down</td>                    <td class="ra" id="cf-afterdown">–$6,350</td></tr>
+        <tr><td>+ Repair cash (concession residual)</td>      <td class="ra green" id="cf-repair">+$26,975</td></tr>
+        <tr><td>= Total cash at closing</td>                  <td class="ra" id="cf-total">$20,625</td></tr>
+        <tr><td>– Equipment budget</td>                       <td class="ra red" id="cf-equip">–$25,000</td></tr>
+        <tr class="total"><td>= Final cash reserve</td>       <td class="ra" id="cf-reserve">–$4,375</td></tr>
+      </tbody>
+    </table>
+    <div id="reserveBadge"></div>
+  </div>
+</div>
+
+<!-- ── Scenario Comparison ── -->
+<div class="section-title">Scenario Comparison</div>
+<div class="card">
+  <div class="sc-wrap">
+    <table class="sc-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>$375k · 20% · 6%</th>
+          <th>$400k · 20% · 6%</th>
+          <th class="hl">$415k · 25% · 9% ★</th>
+          <th>$425k · 25% · 9%</th>
+          <th class="custom-col">Custom ↑</th>
+        </tr>
+      </thead>
+      <tbody id="scBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Charts ── -->
+<div class="charts">
+  <div class="card">
+    <div class="card-title">Monthly PITI by Scenario</div>
+    <div class="chart-wrap"><canvas id="pitiChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Final Cash Reserve by Scenario</div>
+    <div class="chart-wrap"><canvas id="cashChart"></canvas></div>
+  </div>
+</div>
+
+<script>
+let pitiChart, cashChart;
+
+// ── sync slider ↔ number input ──
+function sync(srcId, dstId) {
+  document.getElementById(dstId).value = document.getElementById(srcId).value;
+  calc();
+}
+
+// ── formatting ──
+function fmt(n, places = 0) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD',
+    minimumFractionDigits: places, maximumFractionDigits: places
+  }).format(n);
+}
+function fmtPct(n, places = 1) { return n.toFixed(places) + '%'; }
+
+// ── monthly payment ──
+function pmt(principal, annualRatePct, years) {
+  if (principal <= 0) return 0;
+  const r = annualRatePct / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return principal / n;
+  return principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+}
+
+// ── net proceeds ──
+function netProceeds() {
+  const sale      = +v('salePrice');
+  const payoff    = +v('payoff');
+  const realtor   = +v('realtorPct') / 100;
+  const transfer  = +v('transferPct') / 100;
+  return sale - payoff - sale * realtor - sale * transfer;
+}
+
+function v(id) { return document.getElementById(id).value; }
+
+// ── per-scenario calc ──
+function scenario(offerPrice, downPctVal, concPctVal, ratePct, taxRatePct, insRatePct, closingPctVal, net, equip) {
+  const downAmt    = offerPrice * downPctVal / 100;
+  const loan       = offerPrice - downAmt;
+  const ltv        = loan / offerPrice * 100;
+
+  const pi         = pmt(loan, ratePct, 30);
+  const tax        = offerPrice * taxRatePct / 100 / 12;
+  const ins        = offerPrice * insRatePct / 100 / 12;
+  const pmiMo      = ltv > 80 ? loan * 0.007 / 12 : 0;
+  const piti       = pi + tax + ins + pmiMo;
+
+  const concession = offerPrice * concPctVal / 100;
+  const closingAmt = offerPrice * closingPctVal / 100;
+  const repairCash = concession - closingAmt;
+
+  const afterDown  = net - downAmt;
+  const totalCash  = afterDown + Math.max(0, repairCash);
+  const reserve    = totalCash - equip;
+
+  return { offerPrice, downPctVal, downAmt, loan, ltv, pi, tax, ins, pmiMo, piti,
+           concession, closingAmt, repairCash, afterDown, totalCash, reserve };
+}
+
+// ── color helpers ──
+function reserveColor(v) {
+  if (v >= 15000) return 'green';
+  if (v >= 0)     return 'amber';
+  return 'red';
+}
+function badge(reserve) {
+  if (reserve >= 15000) return `<span class="badge badge-green">Strong reserve — comfortable</span>`;
+  if (reserve >=  5000) return `<span class="badge badge-amber">Thin reserve — manageable, watch expenses</span>`;
+  if (reserve >=     0) return `<span class="badge badge-amber">Very thin reserve — consider lower equipment budget</span>`;
+  const short = fmt(Math.abs(reserve));
+  if (reserve >= -10000) return `<span class="badge badge-red">Short by ${short} — use low equipment budget ($20k) or add cash</span>`;
+  return `<span class="badge badge-red">Short by ${short} — not viable without additional funds</span>`;
+}
+
+function concessionLimit(ltv) {
+  // Conventional loan limits
+  if (ltv <= 75) return 9;
+  if (ltv <= 80) return 6;
+  if (ltv <= 90) return 3;
+  return 3;
+}
+
+// ── main calc ──
+function calc() {
+  const net     = netProceeds();
+  const op      = +v('offerPrice');
+  const dp      = +v('downPct');
+  const cp      = +v('concPct');
+  const rate    = +v('rate');
+  const tax     = +v('taxRate');
+  const ins     = +v('insRate');
+  const closing = +v('closingPct');
+  const equip   = +v('equipment');
+
+  // Net proceeds display
+  document.getElementById('netProceedsDisplay').textContent = fmt(net);
+
+  // Concession limit check
+  const s = scenario(op, dp, cp, rate, tax, ins, closing, net, equip);
+  const maxConc = concessionLimit(s.ltv);
+  const limitEl = document.getElementById('concLimit');
+  if (cp > maxConc) {
+    limitEl.className = 'limit-note err';
+    limitEl.textContent = `⚠ At ${fmtPct(s.ltv)} LTV, max conventional concession is ${maxConc}% — this exceeds the limit.`;
+  } else {
+    limitEl.className = 'limit-note';
+    limitEl.textContent = `At ${fmtPct(s.ltv)} LTV, max conventional concession is ${maxConc}%.`;
+  }
+
+  // Metrics strip
+  document.getElementById('m-proceeds').textContent = fmt(net);
+  document.getElementById('m-loan').textContent     = fmt(s.loan);
+  document.getElementById('m-piti').textContent     = fmt(s.piti);
+
+  const repEl = document.getElementById('m-repair');
+  repEl.textContent  = fmt(s.repairCash);
+  repEl.className    = 'metric-value ' + (s.repairCash >= 0 ? 'green' : 'red');
+
+  const resEl = document.getElementById('m-reserve');
+  resEl.textContent = fmt(s.reserve);
+  resEl.className   = 'metric-value ' + reserveColor(s.reserve);
+
+  // Concession breakdown card
+  document.getElementById('b-offer').textContent  = fmt(op);
+  document.getElementById('b-cpct').textContent   = cp;
+  document.getElementById('b-conc').textContent   = '+' + fmt(s.concession);
+  document.getElementById('b-clpct').textContent  = closing;
+  document.getElementById('b-close').textContent  = '–' + fmt(s.closingAmt);
+  const repairEl = document.getElementById('b-repair');
+  repairEl.textContent = fmt(s.repairCash);
+  repairEl.className   = 'ra ' + (s.repairCash >= 0 ? 'green' : 'red');
+  document.getElementById('b-ltv').textContent    = fmtPct(s.ltv);
+  document.getElementById('b-pmi').innerHTML      = s.pmiMo > 0
+    ? `<span class="amber">PMI ~${fmt(s.pmiMo)}/mo (LTV > 80%)</span>`
+    : `<span class="green">No PMI</span>`;
+
+  // Proceeds allocation card
+  document.getElementById('cf-proceeds').textContent  = fmt(net);
+  document.getElementById('cf-down').textContent      = '–' + fmt(s.downAmt);
+  const adEl = document.getElementById('cf-afterdown');
+  adEl.textContent = fmt(s.afterDown);
+  adEl.className   = 'ra ' + (s.afterDown >= 0 ? 'green' : 'red');
+  document.getElementById('cf-repair').textContent    = '+' + fmt(Math.max(0, s.repairCash));
+  document.getElementById('cf-total').textContent     = fmt(s.totalCash);
+  document.getElementById('cf-equip').textContent     = '–' + fmt(equip);
+  const cfResEl = document.getElementById('cf-reserve');
+  cfResEl.textContent = fmt(s.reserve);
+  cfResEl.className   = 'ra ' + reserveColor(s.reserve);
+  document.getElementById('reserveBadge').innerHTML = badge(s.reserve);
+
+  // ── Scenario comparison table ──
+  const presets = [
+    { label: '$375k · 20% · 6%',  op: 375000, dp: 20, cp: 6 },
+    { label: '$400k · 20% · 6%',  op: 400000, dp: 20, cp: 6 },
+    { label: '$415k · 25% · 9% ★', op: 415000, dp: 25, cp: 9, hl: true },
+    { label: '$425k · 25% · 9%',  op: 425000, dp: 25, cp: 9 },
+    { label: 'Custom', op, dp, cp, custom: true },
+  ];
+
+  const scData = presets.map(p =>
+    scenario(p.op, p.dp, p.cp, rate, tax, ins, closing, net, equip)
+  );
+
+  const rows = [
+    { label: 'Offer Price',          key: 'offerPrice',  f: fmt },
+    { label: 'Down Payment',         key: 'downAmt',     f: fmt },
+    { label: 'Loan',                 key: 'loan',        f: fmt },
+    { label: 'LTV',                  key: 'ltv',         f: v => fmtPct(v) },
+    { label: 'Seller Concession',    key: 'concession',  f: fmt },
+    { label: 'Repair Cash',          key: 'repairCash',  f: fmt, colored: true },
+    { label: 'P&amp;I / mo',         key: 'pi',          f: v => fmt(v) },
+    { label: 'PMI / mo',             key: 'pmiMo',       f: v => v > 0 ? fmt(v) : '—' },
+    { label: 'PITI / mo',            key: 'piti',        f: fmt, bold: true },
+    { label: 'Proceeds after Down',  key: 'afterDown',   f: fmt, colored: true },
+    { label: 'Total Cash',           key: 'totalCash',   f: fmt, colored: true },
+    { label: 'Final Reserve',        key: 'reserve',     f: fmt, colored: true, bold: true },
+  ];
+
+  let tbody = '';
+  for (const row of rows) {
+    const style = row.bold ? ' style="font-weight:700"' : '';
+    tbody += `<tr${style}><td>${row.label}</td>`;
+    for (let i = 0; i < presets.length; i++) {
+      const val = scData[i][row.key];
+      const colClass = row.colored ? reserveColor(val) : '';
+      const cellCls = presets[i].hl ? ' class="hl"' : presets[i].custom ? ' class="custom-col"' : '';
+      tbody += `<td${cellCls}><span class="${colClass}">${row.f(val)}</span></td>`;
+    }
+    tbody += '</tr>';
+  }
+  document.getElementById('scBody').innerHTML = tbody;
+
+  // ── Charts ──
+  const labels  = presets.map(p => p.label);
+  const piArr   = scData.map(s => Math.round(s.pi));
+  const taxArr  = scData.map(s => Math.round(s.tax));
+  const insArr  = scData.map(s => Math.round(s.ins));
+  const pmiArr  = scData.map(s => Math.round(s.pmiMo));
+  const resArr  = scData.map(s => Math.round(s.reserve));
+
+  if (pitiChart) pitiChart.destroy();
+  pitiChart = new Chart(document.getElementById('pitiChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'P&I',        data: piArr,  backgroundColor: '#2d6a4f' },
+        { label: 'Tax',        data: taxArr, backgroundColor: '#52b788' },
+        { label: 'Insurance',  data: insArr, backgroundColor: '#b7e4c7' },
+        { label: 'PMI',        data: pmiArr, backgroundColor: '#e76f51' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            footer: items => 'Total: $' + items.reduce((a, b) => a + b.parsed.y, 0).toLocaleString() + '/mo'
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, ticks: { font: { size: 10 } } },
+        y: { stacked: true, ticks: { callback: v => '$' + v.toLocaleString() } }
+      }
+    }
+  });
+
+  if (cashChart) cashChart.destroy();
+  cashChart = new Chart(document.getElementById('cashChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Final Reserve',
+        data: resArr,
+        backgroundColor: resArr.map(v => v >= 15000 ? '#2d6a4f' : v >= 0 ? '#e76f51' : '#c62828'),
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' Reserve: $' + ctx.parsed.y.toLocaleString() } }
+      },
+      scales: {
+        x: { ticks: { font: { size: 10 } } },
+        y: { ticks: { callback: v => '$' + v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+window.addEventListener('load', calc);
+</script>
+</body>
+</html>

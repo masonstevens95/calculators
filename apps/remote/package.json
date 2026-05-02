@@ -1,0 +1,32 @@
+{
+  "name": "@apps/remote",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./CalculatorsApp": "./src/CalculatorsApp.tsx",
+    "./CalculatorsRoutes": "./src/CalculatorsRoutes.tsx",
+    "./CalculatorsLoadError": "./src/CalculatorsLoadError.tsx"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@module-federation/vite": "^1.15.1",
+    "calc-birchwood-rent-sell": "workspace:*",
+    "calc-eu5-loan": "workspace:*",
+    "calc-lgs-dscr": "workspace:*",
+    "calc-olamina-dscr": "workspace:*",
+    "calc-surry-county-offer": "workspace:*",
+    "calc-winston-salem-lvt": "workspace:*",
+    "react-router-dom": "^7.1.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

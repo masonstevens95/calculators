@@ -1,0 +1,126 @@
+.layout {
+  max-width: 76rem;
+  margin: 0 auto;
+  font-size: 0.92rem;
+}
+
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.heading {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+  color: #2a6f4d;
+}
+
+.subtitle {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.85rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem 1.125rem;
+  margin: 0 0 1rem;
+}
+
+.cardTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2a6f4d;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 0.25rem;
+}
+
+.slider {
+  width: 100%;
+  accent-color: #2a6f4d;
+  cursor: pointer;
+}
+
+.results {
+  margin-top: 1rem;
+}
+
+.sectionHeading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+  color: #1f2937;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.scrollX {
+  overflow-x: auto;
+}
+
+.parcelTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.parcelTable th,
+.parcelTable td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: right;
+}
+
+.parcelTable th:first-child,
+.parcelTable td:first-child {
+  text-align: left;
+}
+
+.parcelTable th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.up {
+  color: #b45309;
+}
+
+.down {
+  color: #2a6f4d;
+}
+
+.myParcelGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.myBill {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.chartWrap {
+  position: relative;
+  height: 22rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 860px) {
+  .myParcelGrid {
+    grid-template-columns: 1fr;
+  }
+}

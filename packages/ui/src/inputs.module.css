@@ -1,0 +1,49 @@
+.input {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  background: #ffffff;
+  color: #111827;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+
+.currencyWrapper,
+.percentWrapper {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.currencySymbol,
+.percentSymbol {
+  position: absolute;
+  color: #6b7280;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.currencySymbol {
+  left: 0.65rem;
+}
+
+.percentSymbol {
+  right: 0.65rem;
+}
+
+.currencyInput {
+  padding-left: 1.5rem;
+}
+
+.percentInput {
+  padding-right: 1.5rem;
+}
