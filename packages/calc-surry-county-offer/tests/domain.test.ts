@@ -10,8 +10,11 @@ import {
 } from '../src/domain';
 import { fixtures } from './fixtures';
 
-const CURRENCY_EPSILON = 0.01;
-const MONTHLY_EPSILON = 1.0; // PMT involves (1+r)^n which can drift sub-dollar
+// `toBeCloseTo(expected, n)` allows a difference < 10^-n / 2.
+//   CURRENCY_EPSILON = 2 → tolerance $0.005 (cents-level for whole-dollar fields)
+//   MONTHLY_EPSILON  = 0 → tolerance $0.50 (PMT involves (1+r)^n, sub-dollar drift OK)
+const CURRENCY_EPSILON = 2;
+const MONTHLY_EPSILON = 0;
 
 describe('monthlyPayment', () => {
   it('matches the textbook 30-year mortgage formula at 6% on $100k', () => {
