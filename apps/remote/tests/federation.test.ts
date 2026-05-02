@@ -66,7 +66,6 @@ describe.runIf(existsSync(MANIFEST_PATH))('federation manifest contract', () => 
 
 // When dist/ doesn't exist this whole describe is skipped — log a hint.
 if (!existsSync(MANIFEST_PATH)) {
-  // eslint-disable-next-line no-console
   console.warn(
     'federation.test.ts: dist/mf-manifest.json missing — run `pnpm --filter @apps/remote build` to generate it.',
   );
