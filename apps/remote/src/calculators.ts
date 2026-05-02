@@ -6,6 +6,7 @@ import type { ComponentType, LazyExoticComponent } from 'react';
 import SurryCountyOffer from 'calc-surry-county-offer';
 import LgsDscr from 'calc-lgs-dscr';
 import OlaminaDscr from 'calc-olamina-dscr';
+import Eu5Loan from 'calc-eu5-loan';
 
 export type CalcDescriptor = {
   slug: string;
@@ -39,6 +40,7 @@ export const calculators: readonly CalcDescriptor[] = [
     slug: 'eu5-loan',
     title: 'EU5 Loan Break-Even',
     blurb: 'Break-even and net-profit-over-time analysis for an EU5 loan scenario.',
+    Component: Eu5Loan,
   },
   {
     slug: 'winston-salem-lvt',

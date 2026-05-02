@@ -1,0 +1,185 @@
+.layout {
+  max-width: 70rem;
+  margin: 0 auto;
+  font-size: 0.92rem;
+}
+
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.heading {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+  color: #b45309;
+}
+
+.subtitle {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.85rem;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem 1.125rem;
+  margin: 0 0 1rem;
+}
+
+.cardTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b45309;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 0.25rem;
+}
+
+.select {
+  display: block;
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #fff;
+}
+
+.results {
+  margin-top: 1rem;
+}
+
+.verdict {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+}
+
+.verdict[data-verdict='strong'] {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.verdict[data-verdict='viable'] {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.verdict[data-verdict='marginal'] {
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.verdict[data-verdict='not-worth-it'] {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.verdictIcon {
+  font-size: 1.4rem;
+}
+
+.sectionHeading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+  color: #1f2937;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.scrollX {
+  overflow-x: auto;
+}
+
+.horizonTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.horizonTable th,
+.horizonTable td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: right;
+}
+
+.horizonTable th:first-child,
+.horizonTable td:first-child,
+.horizonTable th:last-child,
+.horizonTable td:last-child {
+  text-align: left;
+}
+
+.horizonTable th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pos {
+  color: #16a34a;
+}
+
+.neg {
+  color: #b91c1c;
+}
+
+.compareGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.compareOption {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.compareOption.winner {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.compareOption h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.note {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+@media (max-width: 860px) {
+  .inputGrid,
+  .compareGrid {
+    grid-template-columns: 1fr;
+  }
+}
