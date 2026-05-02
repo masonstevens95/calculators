@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Winston-Salem LVT Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f6f1;
+    --panel: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #2a6f4d;
+    --accent-2: #b85c00;
+    --warn: #b00020;
+    --border: #d8d4c5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  h2 { margin: 24px 0 10px; font-size: 18px; color: var(--accent); }
+  .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+  label {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  label .lbl { display: block; color: var(--muted); margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  input[type="range"] { width: 100%; }
+  .mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .mode-toggle button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: var(--panel);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .mode-toggle button.active {
+    background: var(--accent);
+    color: white;
+  }
+  .output-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .output-row:last-child { border-bottom: none; }
+  .output-row .key { color: var(--muted); font-size: 13px; }
+  .output-row .val { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 600; }
+  .output-row .val.big { font-size: 22px; color: var(--accent-2); }
+  .slider-block { padding: 12px 0; }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .k-val { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 700; color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--border); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  tr.highlight td { background: #fff8e6; font-weight: 600; }
+  td.up { color: var(--warn); }
+  td.down { color: var(--accent); }
+  .chart-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 20px; }
+  canvas { max-height: 380px; }
+  .footnote { font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; background: var(--accent); color: white; margin-left: 6px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Winston-Salem Land Value Tax Calculator</h1>
+  <div class="subtitle">Revenue-neutral split-rate modeling — replaces W-S real-property tax revenue ($193.05M) from a land-only base. Personal property tax stays at today's $0.5266/$100 rate. Source: PWA_PUBLIC_VIEW_4-30-2026.accdb (99,369 W-S parcels).</div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Tax Base (Winston-Salem)</h2>
+      <div class="output-row"><span class="key">Total land assessed value</span><span class="val">$7.46B</span></div>
+      <div class="output-row"><span class="key">Total improvement value</span><span class="val">$29.20B</span></div>
+      <div class="output-row"><span class="key">Personal + business personal property</span><span class="val">$5.81B</span></div>
+      <div class="output-row"><span class="key">Current combined rate</span><span class="val">$0.5266 / $100</span></div>
+      <div class="footnote">Source: PWA_PUBLIC_VIEW_4-30-2026.accdb, 99,369 W-S parcels (CITY_PCNT-weighted). City rate from FY26 budget.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Computed</h2>
+      <div class="output-row"><span class="key">Real-property tax base (L+I)</span><span class="val">$36.66B</span></div>
+      <div class="output-row"><span class="key">Land share of real property</span><span class="val">20.4%</span></div>
+      <div class="output-row"><span class="key">Real-property revenue today</span><span class="val">$193.05M</span></div>
+      <div class="output-row"><span class="key">Personal-property revenue today</span><span class="val">$30.60M</span></div>
+      <div class="output-row"><span class="key">Total revenue today</span><span class="val">$223.65M</span></div>
+      <div class="output-row"><span class="key">Target revenue (LVT replaces real-property only)</span><span class="val big">$193.05M</span></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <h2 style="margin-top: 0;">Split Ratio → Required Rates</h2>
+    <div class="slider-block">
+      <div class="slider-label">
+        <span style="font-size: 15px;">Drag to shift tax burden onto land &nbsp;→&nbsp; <span class="k-val" id="kVal" style="font-size: 18px;">0%</span> LVT <span id="kBadge" style="font-size: 13px; color: var(--muted); font-weight: 400;">(current practice)</span></span>
+        <span style="color: var(--muted); font-size: 13px;">0% = uniform $0.5266 · 100% = pure LVT</span>
+      </div>
+      <input type="range" id="k" min="0" max="100" step="1" value="0">
+    </div>
+    <canvas id="ratesChart" style="max-height: 320px;"></canvas>
+    <div class="grid" style="margin-top: 16px;">
+      <div>
+        <div class="output-row"><span class="key">Land rate ($/$100)</span><span class="val big" id="oLandRate">—</span></div>
+        <div class="output-row"><span class="key">Improvement rate ($/$100)</span><span class="val big" id="oImpRate">—</span></div>
+      </div>
+      <div>
+        <div class="output-row"><span class="key">Pure LVT rate (100% shift)</span><span class="val" id="oPureLVT">—</span></div>
+        <div class="output-row"><span class="key">Implied k (land ÷ imp ratio)</span><span class="val" id="oMultiple">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top: 20px;">
+    <div class="panel">
+      <h2>Sample Parcel Types — Tax Bill at Current Shift</h2>
+      <table id="parcelTable">
+        <thead>
+          <tr><th>Parcel type</th><th>Land</th><th>Imp.</th><th>Today</th><th>New</th><th>Δ</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="footnote">Today's tax = (L + I) × $0.5266/$100. Personal property tax (~$30.6M citywide) is unchanged at today's rate.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Your Parcel</h2>
+      <label><span class="lbl">Your land assessed value</span>
+        <input type="number" id="myLand" value="50000" step="1000"></label>
+      <label><span class="lbl">Your improvement assessed value</span>
+        <input type="number" id="myImp" value="200000" step="1000"></label>
+      <table>
+        <tbody>
+          <tr><td>Today's tax (real property)</td><td colspan="2" id="myToday" style="text-align: right; font-family: monospace;"></td></tr>
+          <tr><td>New tax at <span id="myK">0%</span> shift</td><td colspan="2" id="myNew" style="text-align: right; font-family: monospace; font-weight: 600;"></td></tr>
+          <tr><td>Change</td><td colspan="2" id="myDelta" style="text-align: right; font-family: monospace;"></td></tr>
+          <tr><td>Pure LVT (100% shift)</td><td colspan="2" id="myPure" style="text-align: right; font-family: monospace;"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <h2 style="margin-top: 0;">Tax burden by parcel type — bar comparison</h2>
+    <canvas id="parcelChart"></canvas>
+    <div class="footnote">Each parcel type compared at: today's uniform rate, current shift, and 100% LVT.</div>
+  </div>
+
+  <div class="footnote" style="margin-top: 24px; line-height: 1.6;">
+    <strong>Methodology</strong> — All values from PWA_PUBLIC_VIEW_4-30-2026.accdb (Forsyth County). 99,369 parcels filtered to CITY containing "WINSTON-SALEM", weighted by CITY_PCNT for boundary-straddling parcels.<br>
+    <strong>Target</strong> — replaces only the real-property portion of W-S revenue ($193.05M). Personal property tax stays at today's $0.5266/$100 (≈$30.6M, untouched).<br>
+    <strong>Math</strong> — at shift s ∈ [0, 1]: improvement rate = (1−s) × $0.5266; land rate = (1−s) × $0.5266 + s × pure-LVT-rate. Linear interpolation keeps total real-property revenue constant.<br>
+    <strong>Caveat</strong> — North Carolina Constitution Article V §2(2) requires uniform taxation, so split-rate LVT requires General Assembly enabling legislation. See <code>Land Value Tax - Winston-Salem Proposal.md</code>.
+  </div>
+</div>
+
+<script>
+let ratesChart = null;
+let parcelChart = null;
+
+const fmt$ = (n) => '$' + (Math.round(n)).toLocaleString();
+const fmt$M = (n) => '$' + (n / 1e6).toFixed(2) + 'M';
+const fmt$B = (n) => '$' + (n / 1e9).toFixed(2) + 'B';
+const fmtRate = (r) => '$' + (r * 100).toFixed(4) + '/$100';
+const fmtPct = (n) => (n * 100).toFixed(1) + '%';
+
+// Static W-S tax base (from PWA_PUBLIC_VIEW_4-30-2026.accdb)
+const BASE = {
+  L: 7460000000,        // total land assessed value
+  I: 29200000000,       // total improvement value (buildings + other)
+  P: 5810000000,        // personal + business personal property
+  rate: 0.005266,       // current combined rate (decimal: $0.5266/$100)
+};
+
+function getShift() {
+  return Math.max(0, Math.min(1, (parseFloat(document.getElementById('k').value) || 0) / 100));
+}
+
+function update() {
+  const { L, I, rate } = BASE;
+  const target = (L + I) * rate;       // Mode A: replace real-property tax revenue ($193.05M)
+  const uniform = rate;                // = target / (L + I)
+  const pureLVT = target / L;
+  const s = getShift();                // 0 → uniform · 1 → pure LVT
+  const impRate = (1 - s) * uniform;
+  const landRate = (1 - s) * uniform + s * pureLVT;
+  const impliedK = (impRate > 0) ? (landRate / impRate) : Infinity;
+
+  // Slider label + contextual badge
+  document.getElementById('kVal').textContent = (s * 100).toFixed(0) + '%';
+  const badge = document.getElementById('kBadge');
+  if (s === 0) badge.textContent = '(current practice)';
+  else if (s >= 0.999) badge.textContent = '(pure LVT)';
+  else badge.textContent = '(split-rate)';
+
+  // Rate panel outputs
+  document.getElementById('oLandRate').textContent = fmtRate(landRate);
+  document.getElementById('oImpRate').textContent = fmtRate(impRate);
+  document.getElementById('oPureLVT').textContent = fmtRate(pureLVT);
+  document.getElementById('oMultiple').textContent = (impliedK === Infinity) ? '∞ (pure LVT)' : impliedK.toFixed(2);
+
+  // Downstream
+  updateSampleParcels(landRate, impRate, rate, pureLVT);
+  updateMyParcel(landRate, impRate, rate, pureLVT, s);
+  updateRatesChart(landRate, impRate, rate, pureLVT);
+  updateParcelChart(landRate, impRate, rate, pureLVT);
+}
+
+const SAMPLE_PARCELS = [
+  { name: 'Median home (18% land)', land: 50000, imp: 230000 },
+  { name: 'Premium home (15% land)', land: 90000, imp: 510000 },
+  { name: 'Vacant infill lot', land: 90000, imp: 0 },
+  { name: 'Surface parking (downtown)', land: 400000, imp: 0 },
+  { name: 'Dense apartment building', land: 500000, imp: 4500000 },
+  { name: 'Underused commercial strip', land: 600000, imp: 800000 },
+  { name: 'Single-tenant big-box', land: 1500000, imp: 3000000 },
+];
+
+function updateSampleParcels(landRate, impRate, currentRate, pureLVT) {
+  const tbody = document.querySelector('#parcelTable tbody');
+  tbody.innerHTML = '';
+  for (const p of SAMPLE_PARCELS) {
+    const today = (p.land + p.imp) * currentRate;
+    const next = p.land * landRate + p.imp * impRate;
+    const delta = next - today;
+    const cls = delta > 0 ? 'up' : (delta < 0 ? 'down' : '');
+    const sign = delta > 0 ? '+' : '';
+    tbody.innerHTML += `<tr>
+      <td>${p.name}</td>
+      <td>${fmt$(p.land)}</td>
+      <td>${fmt$(p.imp)}</td>
+      <td>${fmt$(today)}</td>
+      <td>${fmt$(next)}</td>
+      <td class="${cls}">${sign}${fmt$(delta)}</td>
+    </tr>`;
+  }
+}
+
+function updateMyParcel(landRate, impRate, currentRate, pureLVT, s) {
+  const land = parseFloat(document.getElementById('myLand').value) || 0;
+  const imp = parseFloat(document.getElementById('myImp').value) || 0;
+  const today = (land + imp) * currentRate;
+  const next = land * landRate + imp * impRate;
+  const delta = next - today;
+  const pure = land * pureLVT;
+  document.getElementById('myToday').textContent = fmt$(today);
+  document.getElementById('myNew').textContent = fmt$(next) + ' (' + (delta >= 0 ? '+' : '') + fmt$(delta) + ')';
+  document.getElementById('myDelta').textContent = (delta >= 0 ? '+' : '') + fmt$(delta) + '  (' + (delta >= 0 ? '+' : '') + ((delta / today) * 100).toFixed(1) + '%)';
+  document.getElementById('myDelta').className = '';
+  document.getElementById('myDelta').style.color = delta > 0 ? 'var(--warn)' : (delta < 0 ? 'var(--accent)' : 'var(--ink)');
+  document.getElementById('myPure').textContent = fmt$(pure) + ' (' + (pure - today >= 0 ? '+' : '') + fmt$(pure - today) + ')';
+  document.getElementById('myK').textContent = (s * 100).toFixed(0) + '%';
+}
+
+function updateRatesChart(landRate, impRate, currentRate, pureLVT) {
+  const labels = ['Land rate', 'Improvement rate'];
+  const newRates = [landRate * 100, impRate * 100];
+  const todayRates = [currentRate * 100, currentRate * 100];
+  const pureRates = [pureLVT * 100, 0];
+
+  if (ratesChart) {
+    ratesChart.data.datasets[0].data = newRates;
+    ratesChart.data.datasets[1].data = todayRates;
+    ratesChart.data.datasets[2].data = pureRates;
+    ratesChart.update('none');
+    return;
+  }
+  const ctx = document.getElementById('ratesChart').getContext('2d');
+  ratesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Required at current shift', data: newRates, backgroundColor: ['#2a6f4d', '#b85c00'], borderRadius: 4, order: 1 },
+        { label: "Today's uniform rate ($0.5266)", data: todayRates, backgroundColor: 'rgba(120,120,120,0.35)', borderColor: '#666', borderWidth: 1, borderRadius: 4, order: 2 },
+        { label: 'Pure LVT (100% shift)', data: pureRates, backgroundColor: 'rgba(42,111,77,0.20)', borderColor: '#2a6f4d', borderWidth: 1, borderRadius: 4, order: 3 },
+      ],
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 250 },
+      scales: {
+        x: { stacked: false },
+        y: {
+          title: { display: true, text: 'Rate ($/$100 assessed value)' },
+          beginAtZero: true,
+          ticks: { callback: (v) => '$' + v.toFixed(2) },
+        },
+      },
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(4)}/$100` } },
+      },
+    },
+  });
+}
+
+function updateParcelChart(landRate, impRate, currentRate, pureLVT) {
+  const labels = SAMPLE_PARCELS.map(p => p.name);
+  const today = SAMPLE_PARCELS.map(p => (p.land + p.imp) * currentRate);
+  const splitVal = SAMPLE_PARCELS.map(p => p.land * landRate + p.imp * impRate);
+  const pureVal = SAMPLE_PARCELS.map(p => p.land * pureLVT);
+
+  if (parcelChart) parcelChart.destroy();
+  const ctx = document.getElementById('parcelChart').getContext('2d');
+  parcelChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Today (uniform $0.5266)', data: today, backgroundColor: '#999' },
+        { label: 'Split-rate at current shift', data: splitVal, backgroundColor: '#2a6f4d' },
+        { label: 'Pure LVT (100% shift)', data: pureVal, backgroundColor: '#b85c00' },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { title: { display: true, text: 'Annual tax ($)' }, beginAtZero: true,
+             ticks: { callback: (v) => '$' + v.toLocaleString() } },
+        x: { ticks: { autoSkip: false, maxRotation: 35, minRotation: 35 } },
+      },
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: $${Math.round(ctx.parsed.y).toLocaleString()}` } },
+      },
+    },
+  });
+}
+
+['k','myLand','myImp'].forEach(id => {
+  document.getElementById(id).addEventListener('input', update);
+});
+
+update();
+</script>
+</body>
+</html>

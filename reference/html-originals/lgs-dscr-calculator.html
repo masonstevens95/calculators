@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olamina DSCR Calculator — LGS / Nationwide Homes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1e1e2e; color: #cdd6f4; padding: 24px; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; color: #89b4fa; }
+  h2 { font-size: 1.1rem; margin: 20px 0 10px; color: #a6adc8; border-bottom: 1px solid #313244; padding-bottom: 6px; }
+  .subtitle { color: #6c7086; font-size: 0.85rem; margin-bottom: 20px; }
+  .params { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .param { display: flex; flex-direction: column; gap: 4px; }
+  .param label { font-size: 0.78rem; color: #a6adc8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .param input, .param select { background: #313244; border: 1px solid #45475a; color: #cdd6f4; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; width: 100%; }
+  .param input:focus, .param select:focus { outline: none; border-color: #89b4fa; }
+  .homes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .home-slot { display: flex; flex-direction: column; gap: 4px; }
+  .home-slot label { font-size: 0.75rem; color: #a6adc8; }
+  .home-slot select { background: #313244; border: 1px solid #45475a; color: #cdd6f4; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+  .home-slot .specs { font-size: 0.7rem; color: #6c7086; margin-top: 2px; min-height: 1.2em; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; padding: 8px 10px; background: #313244; color: #a6adc8; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 1px solid #313244; }
+  tr.total-row { background: #313244; font-weight: 600; }
+  tr.total-row td { border-bottom: none; color: #89b4fa; }
+  .money { font-variant-numeric: tabular-nums; text-align: right; }
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { background: #313244; border-radius: 8px; padding: 16px; }
+  .card .label { font-size: 0.72rem; color: #a6adc8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .card .value { font-size: 1.4rem; font-weight: 700; color: #a6e3a1; }
+  .card .value.warn { color: #fab387; }
+  .card .detail { font-size: 0.75rem; color: #6c7086; margin-top: 4px; }
+  .presets { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .presets button { background: #313244; border: 1px solid #45475a; color: #cdd6f4; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: all 0.15s; }
+  .presets button:hover { background: #45475a; border-color: #89b4fa; }
+  .presets button.active { background: #89b4fa; color: #1e1e2e; border-color: #89b4fa; }
+  .note { font-size: 0.75rem; color: #6c7086; margin-top: 8px; font-style: italic; }
+  .section { margin-bottom: 24px; }
+  .home-count-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .home-count-row label { font-size: 0.85rem; color: #a6adc8; }
+  .home-count-row input { width: 70px; background: #313244; border: 1px solid #45475a; color: #cdd6f4; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; text-align: center; }
+  .home-count-row input:focus { outline: none; border-color: #89b4fa; }
+  .home-count-row button { background: #313244; border: 1px solid #45475a; color: #cdd6f4; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .home-count-row button:hover { background: #45475a; border-color: #89b4fa; }
+  .ref-table { margin-top: 8px; }
+  .ref-table td { font-size: 0.78rem; }
+  .ref-table th { font-size: 0.68rem; }
+  .ref-table tr:hover { background: #313244; }
+  .cat-header td { color: #89b4fa; font-weight: 600; font-size: 0.75rem; background: #181825; padding: 6px 10px; }
+  .rent-context { margin-top: 8px; }
+  .rent-context td { font-size: 0.8rem; }
+  .rent-context th { font-size: 0.7rem; }
+  .inline-hint { font-size: 0.7rem; color: #585b70; margin-top: 2px; }
+  .cash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .cash-grid .card .value.green { color: #a6e3a1; }
+  .cash-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 12px; }
+  .cash-table th { text-align: left; padding: 8px 10px; background: #313244; color: #a6adc8; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; }
+  .cash-table td { padding: 8px 10px; border-bottom: 1px solid #313244; }
+  .cash-table tr.total-row td { border-bottom: none; color: #89b4fa; font-weight: 600; background: #313244; }
+  .cash-table .money { text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<h1>Olamina DSCR Calculator &mdash; LGS / Nationwide Homes</h1>
+<p class="subtitle">Nationwide Homes modular community &middot; All models &middot; Dynamic home count &middot; Construction-to-DSCR analysis</p>
+
+<div class="section">
+  <h2>Presets</h2>
+  <div class="presets">
+    <button onclick="applyPreset('a')">3 Cumberland + 2 Whitfield + 2 Cape</button>
+    <button onclick="applyPreset('b')">2 Cumberland + 5 Whitfield</button>
+    <button onclick="applyPreset('c')">3 Horizon I + 4 Cumberland</button>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Homes</h2>
+  <div class="home-count-row">
+    <button onclick="changeCount(-1)">&minus;</button>
+    <input type="number" id="homeCount" value="7" min="1" max="20" onchange="rebuildHomes()">
+    <button onclick="changeCount(1)">+</button>
+    <label>homes in community</label>
+  </div>
+  <div class="homes-grid" id="homesGrid"></div>
+</div>
+
+<div class="section">
+  <h2>Build Costs</h2>
+  <p class="note" style="margin-bottom:10px">Per-home costs beyond the Nationwide module and shared infrastructure: foundation, site prep, crane setting, utility connections, finishing work. Modules arrive 85&ndash;90% complete. Defaults estimated at ~$10K fixed + ~$8/sqft.</p>
+  <div class="params" id="buildCostInputs"></div>
+</div>
+
+<div class="section">
+  <h2>Loan Parameters</h2>
+  <div class="params">
+    <div class="param">
+      <label>Interest Rate (%)</label>
+      <input type="number" id="rate" value="7" step="0.25" min="4" max="15" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Down Payment (%)</label>
+      <input type="number" id="downPct" value="20" step="5" min="10" max="50" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>DSCR Target</label>
+      <input type="number" id="dscrTarget" value="1.25" step="0.05" min="0.75" max="2" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Loan Term (years)</label>
+      <input type="number" id="term" value="30" step="5" min="15" max="40" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Bulk Discount (%)</label>
+      <input type="number" id="discount" value="5" step="1" min="0" max="20" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Infrastructure (total, all homes)</label>
+      <input type="number" id="infra" value="100000" step="5000" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Property Tax Rate (%/yr)</label>
+      <input type="number" id="taxRate" value="1.0" step="0.1" min="0" max="3" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Insurance (% of value/yr)</label>
+      <input type="number" id="insRate" value="0.35" step="0.05" min="0" max="2" oninput="calc()">
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Per-Home Breakdown</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Model</th>
+        <th>Sqft</th>
+        <th>BR/BA</th>
+        <th>Module (disc.)</th>
+        <th>Build Cost</th>
+        <th>Total Cost</th>
+        <th>Down Pmt</th>
+        <th>Mo. PITIA</th>
+        <th>Rent Needed</th>
+      </tr>
+    </thead>
+    <tbody id="breakdown"></tbody>
+  </table>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Summary</h2>
+  <div class="summary-cards" id="summaryCards"></div>
+</div>
+
+<div class="section">
+  <h2>Cash Requirements</h2>
+  <p class="note" style="margin-bottom:8px">Land equity covers the 20% down payment ($0 cash down). One entity, one blanket loan, one closing. Reserves = cash you must <em>have</em> in the bank, not cash you spend.</p>
+  <div class="params" style="margin-bottom: 12px;">
+    <div class="param">
+      <label>Reserve Months (PITIA)</label>
+      <input type="number" id="reserveMonths" value="6" step="1" min="0" max="24" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Origination Fee (%)</label>
+      <input type="number" id="origFee" value="1" step="0.25" min="0" max="3" oninput="calc()">
+    </div>
+    <div class="param">
+      <label>Other Closing Costs ($)</label>
+      <input type="number" id="otherClosing" value="12000" step="1000" min="0" oninput="calc()">
+      <div class="inline-hint">Appraisal + title + attorney + recording</div>
+    </div>
+  </div>
+  <table class="cash-table">
+    <thead><tr><th>Item</th><th class="money">Amount</th><th>Notes</th></tr></thead>
+    <tbody id="cashBreakdown"></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Nationwide Homes Model Reference</h2>
+  <p class="note" style="margin-bottom:8px">Prices estimated from LGS dealer pricing tiers (Standard ~$170/sqft, Cape Cod ~$165/sqft). Module prices include factory build and delivery. All models are wood-frame modular, DSCR-eligible on permanent foundation.</p>
+  <div style="overflow-x:auto">
+  <table class="ref-table" id="refTable"></table>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Winston-Salem Rent Context</h2>
+  <table class="rent-context">
+    <thead><tr><th>Type</th><th>Sqft</th><th>Market Rent Range</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>1BR / 1BA</td><td>~1,300</td><td>$1,100 – $1,400/mo</td><td>Farmhouse V Cape</td></tr>
+      <tr><td>3BR / 2BA</td><td>1,500–1,900</td><td>$1,500 – $2,200/mo</td><td>Horizon I, Cumberland, Whitfield</td></tr>
+      <tr><td>3+BR / 2+BA</td><td>2,700+</td><td>$2,200 – $3,000/mo</td><td>Horizon I Cape, Horizon II Cape</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Market rents are estimates for Winston-Salem metro. New construction modular commands mid-to-upper range. Standard finishes (vs MomoHomes premium) means rents skew toward the lower end of ranges.</p>
+</div>
+
+<p class="note" style="margin-top:24px">
+  Prices estimated from LGS Home Builders dealer pricing tiers (Standard ~$170/sqft, Cape Cod ~$165/sqft). Nationwide Homes delivers modules 85&ndash;90% complete. Confirm exact pricing with LGS at (336) 518-0076. All numbers exclude land cost.
+</p>
+
+<script>
+const MODELS = [
+  // Single-Family Homes (Standard style)
+  { id: 'farmhouse_v_cape', cat: 'SFH', name: 'Farmhouse V Cape',     sqft: 1344, br: 1,   ba: 1,   modulePrice: 221760,  dims: '',             defaultBuild: 20752 },
+  { id: 'horizon_i',        cat: 'SFH', name: 'Horizon I',            sqft: 1548, br: 3,   ba: 2,   modulePrice: 263160,  dims: '',             defaultBuild: 22384 },
+  { id: 'cumberland',       cat: 'SFH', name: 'Cumberland',           sqft: 1664, br: 3,   ba: 2,   modulePrice: 282880,  dims: '62\' x 27\'8"', defaultBuild: 23312 },
+  { id: 'whitfield',        cat: 'SFH', name: 'Whitfield',            sqft: 1902, br: 3,   ba: 2,   modulePrice: 323340,  dims: '60\' x 41.5\'', defaultBuild: 25216 },
+  // Cape Cod Models
+  { id: 'horizon_ii_cape',  cat: 'Cape', name: 'Horizon II Cape',     sqft: 2748, br: 3,   ba: 2,   modulePrice: 453420,  dims: '',             defaultBuild: 31984 },
+  { id: 'horizon_i_cape',   cat: 'Cape', name: 'Horizon I Cape',      sqft: 2813, br: 3,   ba: 2,   modulePrice: 464145,  dims: '',             defaultBuild: 32504 },
+];
+
+const MODEL_MAP = {};
+MODELS.forEach(m => MODEL_MAP[m.id] = m);
+
+let homeCount = 7;
+const buildOverrides = {};
+
+function init() {
+  buildRefTable();
+  rebuildHomes();
+}
+
+function getSelectedModelIds() {
+  const seen = new Set();
+  const ordered = [];
+  for (let i = 0; i < homeCount; i++) {
+    const el = document.getElementById(`home${i}`);
+    if (el && !seen.has(el.value)) {
+      seen.add(el.value);
+      ordered.push(el.value);
+    }
+  }
+  return ordered;
+}
+
+function updateBuildInputs() {
+  const container = document.getElementById('buildCostInputs');
+  container.querySelectorAll('input[data-model]').forEach(inp => {
+    buildOverrides[inp.dataset.model] = parseFloat(inp.value);
+  });
+
+  const ids = getSelectedModelIds();
+  container.innerHTML = '';
+  ids.forEach(id => {
+    const m = MODEL_MAP[id];
+    const val = buildOverrides[id] != null ? buildOverrides[id] : m.defaultBuild;
+    const div = document.createElement('div');
+    div.className = 'param';
+    div.innerHTML = `
+      <label>${m.name} Build Cost</label>
+      <input type="number" data-model="${id}" value="${val}" step="1000" min="0" oninput="onBuildInput(this)">
+      <div class="inline-hint">${m.sqft.toLocaleString()} sqft &middot; ${m.br}BR/${m.ba}BA</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function onBuildInput(el) {
+  buildOverrides[el.dataset.model] = parseFloat(el.value);
+  calc();
+}
+
+function getBuildCost(modelId) {
+  if (buildOverrides[modelId] != null) return buildOverrides[modelId];
+  return MODEL_MAP[modelId].defaultBuild;
+}
+
+function buildRefTable() {
+  const t = document.getElementById('refTable');
+  let html = `<thead><tr>
+    <th>Model</th><th>Category</th><th>Sqft</th><th>BR/BA</th>
+    <th>Module Price</th><th>Dimensions</th><th>Style</th>
+  </tr></thead><tbody>`;
+  let lastCat = '';
+  MODELS.forEach(m => {
+    if (m.cat !== lastCat) {
+      html += `<tr class="cat-header"><td colspan="7">${m.cat === 'SFH' ? 'Single-Family Homes' : 'Cape Cod Models'}</td></tr>`;
+      lastCat = m.cat;
+    }
+    html += `<tr>
+      <td>${m.name}</td><td>${m.cat}</td><td>${m.sqft.toLocaleString()}</td>
+      <td>${m.br}/${m.ba}</td><td class="money">${fmt(m.modulePrice)}</td>
+      <td>${m.dims || '—'}</td>
+      <td>${m.cat === 'Cape' ? 'Cape Cod' : 'Standard'}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  t.innerHTML = html;
+}
+
+function changeCount(delta) {
+  const input = document.getElementById('homeCount');
+  let val = parseInt(input.value) + delta;
+  if (val < 1) val = 1;
+  if (val > 20) val = 20;
+  input.value = val;
+  rebuildHomes();
+}
+
+function rebuildHomes() {
+  homeCount = parseInt(document.getElementById('homeCount').value) || 7;
+  if (homeCount < 1) homeCount = 1;
+  if (homeCount > 20) homeCount = 20;
+
+  const grid = document.getElementById('homesGrid');
+  const oldSelections = [];
+  for (let i = 0; i < 20; i++) {
+    const el = document.getElementById(`home${i}`);
+    if (el) oldSelections[i] = el.value;
+  }
+
+  grid.innerHTML = '';
+  for (let i = 0; i < homeCount; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'home-slot';
+
+    let options = '';
+    let lastCat = '';
+    MODELS.forEach(m => {
+      if (m.cat !== lastCat) {
+        if (lastCat) options += '</optgroup>';
+        options += `<optgroup label="${m.cat === 'SFH' ? '── Single-Family Homes ──' : '── Cape Cod Models ──'}">`;
+        lastCat = m.cat;
+      }
+      const label = `${m.name} (${m.br}BR/${m.ba}BA, ${m.sqft.toLocaleString()} sqft)`;
+      options += `<option value="${m.id}">${label}</option>`;
+    });
+    options += '</optgroup>';
+
+    slot.innerHTML = `
+      <label>Home ${i + 1}</label>
+      <select id="home${i}" onchange="updateBuildInputs(); calc()">${options}</select>
+      <div class="specs" id="specs${i}"></div>
+    `;
+    grid.appendChild(slot);
+
+    const sel = document.getElementById(`home${i}`);
+    if (oldSelections[i] && MODEL_MAP[oldSelections[i]]) {
+      sel.value = oldSelections[i];
+    } else {
+      sel.value = 'cumberland';
+    }
+  }
+  updateBuildInputs();
+  calc();
+}
+
+function applyPreset(p) {
+  document.querySelectorAll('.presets button').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+
+  const configs = {
+    a: ['cumberland','cumberland','cumberland','whitfield','whitfield','horizon_i_cape','horizon_i_cape'],
+    b: ['cumberland','cumberland','whitfield','whitfield','whitfield','whitfield','whitfield'],
+    c: ['horizon_i','horizon_i','horizon_i','cumberland','cumberland','cumberland','cumberland'],
+  };
+  const sel = configs[p];
+  if (!sel) return;
+
+  document.getElementById('homeCount').value = sel.length;
+  rebuildHomes();
+
+  sel.forEach((m, i) => {
+    const el = document.getElementById(`home${i}`);
+    if (el) el.value = m;
+  });
+  updateBuildInputs();
+  calc();
+}
+
+function monthlyPayment(principal, annualRate, years) {
+  const r = annualRate / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return principal / n;
+  return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+function calc() {
+  const rate = parseFloat(document.getElementById('rate').value) || 7;
+  const downPct = parseFloat(document.getElementById('downPct').value) || 20;
+  const dscrTarget = parseFloat(document.getElementById('dscrTarget').value) || 1.25;
+  const term = parseInt(document.getElementById('term').value) || 30;
+  const discount = parseFloat(document.getElementById('discount').value) || 5;
+  const infra = parseFloat(document.getElementById('infra').value) || 100000;
+  const taxRate = parseFloat(document.getElementById('taxRate').value) || 1.0;
+  const insRate = parseFloat(document.getElementById('insRate').value) || 0.35;
+  const infraPerHome = infra / homeCount;
+  const tbody = document.getElementById('breakdown');
+  tbody.innerHTML = '';
+
+  let totals = { module: 0, build: 0, total: 0, down: 0, pitia: 0, rent: 0, sqft: 0 };
+
+  for (let i = 0; i < homeCount; i++) {
+    const modelKey = document.getElementById(`home${i}`).value;
+    const m = MODEL_MAP[modelKey];
+    if (!m) continue;
+
+    const buildCost = getBuildCost(modelKey);
+    const mod = m.modulePrice * (1 - discount / 100);
+    const total = mod + buildCost + infraPerHome;
+    const down = total * downPct / 100;
+    const loan = total - down;
+    const pi = monthlyPayment(loan, rate, term);
+    const tax = total * (taxRate / 100) / 12;
+    const ins = total * (insRate / 100) / 12;
+    const pitia = pi + tax + ins;
+    const rentNeeded = pitia * dscrTarget;
+
+    document.getElementById(`specs${i}`).textContent =
+      `${fmt(mod)} module · ${fmt(buildCost)} build · ${fmt(total)} total`;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${m.name}</td>
+      <td>${m.sqft.toLocaleString()}</td>
+      <td>${m.br}/${m.ba}</td>
+      <td class="money">${fmt(mod)}</td>
+      <td class="money">${fmt(buildCost)}</td>
+      <td class="money">${fmt(total)}</td>
+      <td class="money">${fmt(down)}</td>
+      <td class="money">${fmt(pitia)}</td>
+      <td class="money">${fmt(rentNeeded)}</td>
+    `;
+    tbody.appendChild(tr);
+
+    totals.module += mod;
+    totals.build += buildCost;
+    totals.total += total;
+    totals.down += down;
+    totals.pitia += pitia;
+    totals.rent += rentNeeded;
+    totals.sqft += m.sqft;
+  }
+
+  const totalRow = document.createElement('tr');
+  totalRow.className = 'total-row';
+  totalRow.innerHTML = `
+    <td colspan="2">TOTAL (${homeCount} homes)</td>
+    <td>${totals.sqft.toLocaleString()}</td>
+    <td></td>
+    <td class="money">${fmt(totals.module)}</td>
+    <td class="money">${fmt(totals.build)}</td>
+    <td class="money">${fmt(totals.total)}</td>
+    <td class="money">${fmt(totals.down)}</td>
+    <td class="money">${fmt(totals.pitia)}</td>
+    <td class="money">${fmt(totals.rent)}</td>
+  `;
+  tbody.appendChild(totalRow);
+
+  // Summary cards
+  const avgRentPerHome = totals.rent / homeCount;
+  const annualRent = totals.rent * 12;
+  const moduleBeforeDiscount = totals.module / (1 - discount / 100);
+  const savings = moduleBeforeDiscount - totals.module;
+
+  const counts = {};
+  for (let i = 0; i < homeCount; i++) {
+    const k = document.getElementById(`home${i}`).value;
+    counts[k] = (counts[k] || 0) + 1;
+  }
+  const mix = Object.entries(counts).map(([k,v]) => `${v}&times; ${MODEL_MAP[k].name}`).join(', ');
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card">
+      <div class="label">Total Project Cost</div>
+      <div class="value">${fmt(totals.total)}</div>
+      <div class="detail">${mix}</div>
+    </div>
+    <div class="card">
+      <div class="label">Total Down Payment (${downPct}%)</div>
+      <div class="value">${fmt(totals.down)}</div>
+      <div class="detail">${fmt(totals.down / homeCount)} avg per home</div>
+    </div>
+    <div class="card">
+      <div class="label">Monthly Rent Needed (all ${homeCount})</div>
+      <div class="value ${totals.rent > homeCount * 3000 ? 'warn' : ''}">${fmt(totals.rent)}/mo</div>
+      <div class="detail">DSCR ${dscrTarget} &middot; ${fmt(avgRentPerHome)} avg per home</div>
+    </div>
+    <div class="card">
+      <div class="label">Annual Rent Revenue</div>
+      <div class="value ${annualRent > homeCount * 36000 ? 'warn' : ''}">${fmt(annualRent)}/yr</div>
+      <div class="detail">At ${rate}% rate, ${term}-yr term</div>
+    </div>
+    <div class="card">
+      <div class="label">Module Cost (${discount}% discount)</div>
+      <div class="value">${fmt(totals.module)}</div>
+      <div class="detail">Saved ${fmt(savings)} from bulk</div>
+    </div>
+    <div class="card">
+      <div class="label">Total Loan Amount</div>
+      <div class="value">${fmt(totals.total - totals.down)}</div>
+      <div class="detail">${(100 - downPct)}% LTV &middot; ${totals.sqft.toLocaleString()} total sqft</div>
+    </div>
+  `;
+
+  // Cash Requirements
+  const reserveMonths = parseFloat(document.getElementById('reserveMonths').value) || 6;
+  const origFee = parseFloat(document.getElementById('origFee').value) || 1;
+  const otherClosing = parseFloat(document.getElementById('otherClosing').value) || 12000;
+  const loanAmount = totals.total - totals.down;
+  const origCost = loanAmount * origFee / 100;
+  const totalClosing = origCost + otherClosing;
+  const reserves = totals.pitia * reserveMonths;
+  const totalCashNeeded = totalClosing + reserves;
+
+  const cashTbody = document.getElementById('cashBreakdown');
+  cashTbody.innerHTML = `
+    <tr>
+      <td>Down payment</td>
+      <td class="money"><strong>$0</strong></td>
+      <td>Covered by land equity</td>
+    </tr>
+    <tr>
+      <td>Origination fee (${origFee}% of ${fmt(loanAmount)} loan)</td>
+      <td class="money">${fmt(origCost)}</td>
+      <td>Negotiable on large loans</td>
+    </tr>
+    <tr>
+      <td>Other closing costs</td>
+      <td class="money">${fmt(otherClosing)}</td>
+      <td>Appraisal, title, attorney, recording</td>
+    </tr>
+    <tr>
+      <td><strong>Total closing costs</strong></td>
+      <td class="money"><strong>${fmt(totalClosing)}</strong></td>
+      <td>Actual out-of-pocket at closing</td>
+    </tr>
+    <tr>
+      <td>Post-closing reserves (${reserveMonths} mo &times; ${fmt(totals.pitia)}/mo PITIA)</td>
+      <td class="money">${fmt(reserves)}</td>
+      <td>Cash you must <em>have</em>, not spend</td>
+    </tr>
+    <tr class="total-row">
+      <td><strong>Total cash needed</strong></td>
+      <td class="money"><strong>${fmt(totalCashNeeded)}</strong></td>
+      <td>Closing costs + reserves in bank</td>
+    </tr>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

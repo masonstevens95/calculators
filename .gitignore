@@ -1,6 +1,29 @@
 .planning/
+.pnpm-store/
 node_modules/
 *.log
 .DS_Store
 old_calcs/
 .claude/settings.local.json
+
+# build artifacts
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# test artifacts
+coverage/
+.nyc_output/
+
+# editor / OS
+.vscode/
+.idea/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# vercel
+.vercel
