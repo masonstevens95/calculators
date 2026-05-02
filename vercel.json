@@ -62,9 +62,6 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/((?!assets/|remoteEntry\\.js|mf-manifest\\.json|mf-stats\\.json|mf-entry-bootstrap.*|favicon\\.ico|@mf-types).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }
