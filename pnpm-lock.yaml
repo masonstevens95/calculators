@@ -86,6 +86,9 @@ importers:
 
   apps/remote:
     dependencies:
+      calc-birchwood-rent-sell:
+        specifier: workspace:*
+        version: link:../../packages/calc-birchwood-rent-sell
       calc-eu5-loan:
         specifier: workspace:*
         version: link:../../packages/calc-eu5-loan
@@ -110,6 +113,27 @@ importers:
       react-router-dom:
         specifier: ^7.1.0
         version: 7.14.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+
+  packages/calc-birchwood-rent-sell:
+    dependencies:
+      '@calc/charts':
+        specifier: workspace:*
+        version: link:../charts
+      '@calc/domain-utils':
+        specifier: workspace:*
+        version: link:../domain-utils
+      '@calc/ui':
+        specifier: workspace:*
+        version: link:../ui
+      chart.js:
+        specifier: ^4.4.0
+        version: 4.5.1
+      react:
+        specifier: ^19.0.0
+        version: 19.2.5
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.5(react@19.2.5)
 
   packages/calc-eu5-loan:
     dependencies:

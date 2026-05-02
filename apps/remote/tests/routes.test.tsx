@@ -41,19 +41,14 @@ describe('routes — layout selection per URL', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders a placeholder under AppLayout for an unwired slug', () => {
-    renderAt('/calc/birchwood-rent-sell');
-    expect(screen.getByRole('banner')).toBeInTheDocument();
-    // Placeholder echoes the slug while wiring is pending its U-ID
-    expect(screen.getByText(/birchwood-rent-sell/)).toBeInTheDocument();
-  });
-
   it('renders chrome-free for direct visit to /embed/:slug (no parent-context detection)', () => {
-    // Same as the case above — explicitly captures the "no detection" intent.
-    // Use an unwired slug so the placeholder slug-echo is observable.
+    // Use a registered & wired slug — every calc renders chrome-free under
+    // /embed regardless of how the visitor arrived (no detection).
     renderAt('/embed/birchwood-rent-sell');
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
-    expect(screen.getByText(/birchwood-rent-sell/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /birchwood rent vs sell/i, level: 1 }),
+    ).toBeInTheDocument();
   });
 
   it('renders NotFoundPage for an unknown /calc/:slug', () => {

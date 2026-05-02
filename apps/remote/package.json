@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "calc-birchwood-rent-sell": "workspace:*",
     "calc-eu5-loan": "workspace:*",
     "calc-lgs-dscr": "workspace:*",
     "calc-olamina-dscr": "workspace:*",
