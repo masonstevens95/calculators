@@ -2,3 +2,4 @@
 // strict red→green→refactor cycles in U3.
 export { formatCurrency } from './format/currency';
 export { formatPercent } from './format/percent';
+export { formatNumber } from './format/number';
