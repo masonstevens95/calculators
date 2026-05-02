@@ -5,6 +5,7 @@
 import type { ComponentType, LazyExoticComponent } from 'react';
 import SurryCountyOffer from 'calc-surry-county-offer';
 import LgsDscr from 'calc-lgs-dscr';
+import OlaminaDscr from 'calc-olamina-dscr';
 
 export type CalcDescriptor = {
   slug: string;
@@ -32,6 +33,7 @@ export const calculators: readonly CalcDescriptor[] = [
     slug: 'olamina-dscr',
     title: 'Olamina DSCR',
     blurb: 'Debt service coverage ratio for Olamina builds, with kit-price addons.',
+    Component: OlaminaDscr,
   },
   {
     slug: 'eu5-loan',
