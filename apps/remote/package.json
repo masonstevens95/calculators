@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "calc-lgs-dscr": "workspace:*",
     "calc-surry-county-offer": "workspace:*",
     "react-router-dom": "^7.1.0"
   },

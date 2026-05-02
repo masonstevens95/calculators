@@ -1,5 +1,7 @@
-// Domain-only public surface lands first (red→green); the React Component
-// default export is added once it lands later in U5.
+// Public surface for calc-lgs-dscr.
+// Default export: the React component (federation-ready per KTD #20).
+// Named exports: domain functions and the LGS model catalog.
+export { default, LgsDscrComponent } from './Component';
 export {
   computeDscr,
   monthlyPayment,

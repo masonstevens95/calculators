@@ -4,6 +4,7 @@
 
 import type { ComponentType, LazyExoticComponent } from 'react';
 import SurryCountyOffer from 'calc-surry-county-offer';
+import LgsDscr from 'calc-lgs-dscr';
 
 export type CalcDescriptor = {
   slug: string;
@@ -25,6 +26,7 @@ export const calculators: readonly CalcDescriptor[] = [
     slug: 'lgs-dscr',
     title: 'LGS DSCR',
     blurb: 'Debt service coverage ratio for LGS / Nationwide Homes builds.',
+    Component: LgsDscr,
   },
   {
     slug: 'olamina-dscr',

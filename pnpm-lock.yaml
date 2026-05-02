@@ -86,6 +86,9 @@ importers:
 
   apps/remote:
     dependencies:
+      calc-lgs-dscr:
+        specifier: workspace:*
+        version: link:../../packages/calc-lgs-dscr
       calc-surry-county-offer:
         specifier: workspace:*
         version: link:../../packages/calc-surry-county-offer
