@@ -3,6 +3,7 @@
 // and HomePage discovery — no hardcoding scattered across components.
 
 import type { ComponentType, LazyExoticComponent } from 'react';
+import SurryCountyOffer from 'calc-surry-county-offer';
 
 export type CalcDescriptor = {
   slug: string;
@@ -18,6 +19,7 @@ export const calculators: readonly CalcDescriptor[] = [
     slug: 'surry-county-offer',
     title: 'Surry County Offer',
     blurb: 'Estimate offer terms for a Surry County purchase, with PITI and cash-flow charts.',
+    Component: SurryCountyOffer,
   },
   {
     slug: 'lgs-dscr',

@@ -23,6 +23,8 @@ describe('<CalculatorsRoutes /> — federated-host integration shape', () => {
         </Routes>
       </MemoryRouter>,
     );
-    expect(screen.getByText(/surry-county-offer/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+    ).toBeInTheDocument();
   });
 });

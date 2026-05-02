@@ -19,22 +19,33 @@ describe('routes — layout selection per URL', () => {
     expect(screen.getByRole('heading', { name: /calculators/i })).toBeInTheDocument();
   });
 
-  it('renders CalcPagePlaceholder under AppLayout for "/calc/:slug"', () => {
+  it('renders the wired calc under AppLayout for "/calc/:slug" (Surry County)', () => {
     renderAt('/calc/surry-county-offer');
-    // Chrome present: header + footer
+    // Chrome present: AppLayout banner + contentinfo
     expect(screen.getByRole('banner')).toBeInTheDocument();
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
-    // Slug echoed
-    expect(screen.getByText(/surry-county-offer/)).toBeInTheDocument();
+    // Real Surry County calc heading rendered
+    expect(
+      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+    ).toBeInTheDocument();
   });
 
-  it('renders CalcPagePlaceholder under EmbedLayout for "/embed/:slug"', () => {
+  it('renders the wired calc under EmbedLayout for "/embed/:slug" (chrome-free)', () => {
     renderAt('/embed/surry-county-offer');
-    // Chrome absent: no banner, no contentinfo
+    // Chrome absent: no AppLayout banner / contentinfo
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
-    // Slug still rendered
-    expect(screen.getByText(/surry-county-offer/)).toBeInTheDocument();
+    // Calc itself still rendered
+    expect(
+      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders a placeholder under AppLayout for an unwired slug', () => {
+    renderAt('/calc/lgs-dscr');
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+    // Placeholder echoes the slug while wiring is pending its U-ID
+    expect(screen.getByText(/lgs-dscr/)).toBeInTheDocument();
   });
 
   it('renders chrome-free for direct visit to /embed/:slug (no parent-context detection)', () => {
