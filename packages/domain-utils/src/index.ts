@@ -5,4 +5,5 @@ export { formatPercent } from './format/percent';
 export { formatNumber } from './format/number';
 export { required } from './validate/required';
 export { positive } from './validate/positive';
+export { range } from './validate/range';
 export type { ValidationResult } from './validate/types';
