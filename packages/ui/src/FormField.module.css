@@ -1,0 +1,28 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.error {
+  font-size: 0.85rem;
+  color: #b91c1c;
+  margin: 0;
+}
+
+.field[data-invalid='true'] .label {
+  color: #b91c1c;
+}
