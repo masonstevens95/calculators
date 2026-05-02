@@ -1,10 +1,36 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { federation } from '@module-federation/vite';
 
-// MF federation plugin is intentionally NOT wired here — added in U10.
-// This config is the dev/build setup for the standalone remote.
+// Module Federation 2.0 (KTD #1). Shared deps with trailing-slash patterns
+// (KTD #14) so MF resolves react/jsx-runtime through the same React the host
+// is using — eliminates the classic "Invalid hook call" double-React bug.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    federation({
+      name: 'calculators',
+      filename: 'remoteEntry.js',
+      manifest: true,
+      exposes: {
+        './CalculatorsApp': './src/CalculatorsApp.tsx',
+        './CalculatorsRoutes': './src/CalculatorsRoutes.tsx',
+        './CalculatorsLoadError': './src/CalculatorsLoadError.tsx',
+        './calc/surry-county-offer': 'calc-surry-county-offer',
+        './calc/lgs-dscr': 'calc-lgs-dscr',
+        './calc/olamina-dscr': 'calc-olamina-dscr',
+        './calc/eu5-loan': 'calc-eu5-loan',
+        './calc/winston-salem-lvt': 'calc-winston-salem-lvt',
+        './calc/birchwood-rent-sell': 'calc-birchwood-rent-sell',
+      },
+      shared: {
+        react: { singleton: true, requiredVersion: '^19.0.0' },
+        'react/': { singleton: true, requiredVersion: '^19.0.0' },
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' },
+        'react-dom/': { singleton: true, requiredVersion: '^19.0.0' },
+      },
+    }),
+  ],
   server: {
     port: 5174,
   },

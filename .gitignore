@@ -10,6 +10,7 @@ old_calcs/
 dist/
 build/
 .vite/
+.__mf__temp/
 *.tsbuildinfo
 
 # test artifacts
