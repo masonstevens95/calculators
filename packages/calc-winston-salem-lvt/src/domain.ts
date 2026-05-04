@@ -7,6 +7,12 @@ import type { Parcel } from './parcels';
 export type LvtInputs = {
   /** Shift fraction toward LVT, range [0, 1]. 0 = uniform; 1 = pure LVT. */
   shift: number;
+  /**
+   * Multiplier on the city's revenue target. Default 1 keeps the calc
+   * revenue-neutral; values > 1 power the "Raise revenue" tab where the
+   * city collects above today's baseline.
+   */
+  revenueScale?: number;
   /** Optional per-user parcel for the "your bill" UI. */
   myParcel?: Parcel;
 };
@@ -46,10 +52,15 @@ export type ComputeLvtResult =
   | { ok: true; result: LvtOutput }
   | { ok: false; errors: Partial<Record<keyof LvtInputs, string>> };
 
-export function computeRates(shift: number, base = WS_BASE): LvtRates {
+export function computeRates(
+  shift: number,
+  base = WS_BASE,
+  revenueScale = 1,
+): LvtRates {
   const s = Math.max(0, Math.min(1, shift));
-  const target = (base.L + base.I) * base.rate;
-  const uniformRate = target / (base.L + base.I); // = base.rate
+  const scale = Number.isFinite(revenueScale) && revenueScale > 0 ? revenueScale : 1;
+  const target = (base.L + base.I) * base.rate * scale;
+  const uniformRate = target / (base.L + base.I); // = base.rate × scale
   const pureLvtRate = base.L > 0 ? target / base.L : 0;
   const impRate = (1 - s) * uniformRate;
   const landRate = (1 - s) * uniformRate + s * pureLvtRate;
@@ -71,6 +82,15 @@ export function validateLvtInputs(inputs: LvtInputs): Partial<Record<keyof LvtIn
   }
   // Note: out-of-range shift values are clamped to [0, 1] in computeRates
   // (matches the HTML original's behavior). Validation only requires finite.
+  if (inputs.revenueScale !== undefined) {
+    if (
+      typeof inputs.revenueScale !== 'number' ||
+      !Number.isFinite(inputs.revenueScale) ||
+      inputs.revenueScale <= 0
+    ) {
+      errors.revenueScale = 'revenueScale must be a positive finite number.';
+    }
+  }
   if (inputs.myParcel) {
     const { land, imp } = inputs.myParcel;
     if (typeof land !== 'number' || !Number.isFinite(land) || land < 0) {
@@ -87,7 +107,7 @@ export function computeLvt(inputs: LvtInputs, base = WS_BASE): ComputeLvtResult 
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
-  const rates = computeRates(inputs.shift, base);
+  const rates = computeRates(inputs.shift, base, inputs.revenueScale ?? 1);
   const sampleBills = SAMPLE_PARCELS.map((p) => computeParcelBill(p, rates, base.rate));
   const myBill = inputs.myParcel
     ? computeParcelBill(inputs.myParcel, rates, base.rate)
