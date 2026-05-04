@@ -130,27 +130,39 @@ export function WinstonSalemLvtComponent() {
           className={styles.tabPanel}
         >
           <h2 className={styles.sectionHeading}>Required Rates</h2>
-          <div className={styles.statsGrid}>
-            <ResultDisplay label="Land rate" value={fmtRate(rates.landRate)} emphasis="primary" />
-            <ResultDisplay
+          <p className={styles.sectionIntro}>
+            These four rates are what the city would need to set to keep total property-tax revenue
+            at <strong>{formatCurrency(rates.target, { maximumFractionDigits: 0 })}</strong> while
+            shifting {shiftPct}% of the burden onto land.
+          </p>
+          <dl className={styles.rateList}>
+            <RateRow
+              label="Land rate"
+              value={fmtRate(rates.landRate)}
+              description="Charged on the assessed value of land only. Climbs as you slide toward LVT — the city has to raise more from the same land base."
+            />
+            <RateRow
               label="Improvement rate"
               value={fmtRate(rates.impRate)}
-              emphasis="primary"
+              description="Charged on buildings and other improvements. Falls toward zero as the slider approaches 100%, which is the policy's whole point: stop punishing construction."
             />
-            <ResultDisplay label="Pure LVT rate (100% shift)" value={fmtRate(rates.pureLvtRate)} />
-            <ResultDisplay
-              label="Implied k (land ÷ imp)"
+            <RateRow
+              label="Pure LVT rate"
+              sublabel="reference: 100% shift"
+              value={fmtRate(rates.pureLvtRate)}
+              description="What the land rate would be if the city dropped the building tax entirely — the slider's far-right endpoint. Shown as a reference point even when you're not all the way there."
+            />
+            <RateRow
+              label="Implied k"
+              sublabel="land rate ÷ improvement rate"
               value={
                 Number.isFinite(rates.impliedK)
-                  ? formatNumber(rates.impliedK, { fractionDigits: 2 })
+                  ? `${formatNumber(rates.impliedK, { fractionDigits: 2 })}×`
                   : '∞'
               }
+              description="How many times higher the land rate is than the improvement rate. 1× is today's uniform tax; ∞ is pure LVT. The bigger the ratio, the stronger the nudge to develop or sell underused land."
             />
-            <ResultDisplay
-              label="Revenue target"
-              value={formatCurrency(rates.target, { maximumFractionDigits: 0 })}
-            />
-          </div>
+          </dl>
           <p className={styles.tieBack}>
             Revenue is held flat — the shift is paid by{' '}
             <button type="button" className={styles.tieLink} onClick={() => setTab('classes')}>
@@ -299,6 +311,28 @@ function TabCard({ id, panelId, label, value, subline, active, onSelect }: TabCa
       <span className={styles.tabValue}>{value}</span>
       <span className={styles.tabSubline}>{subline}</span>
     </button>
+  );
+}
+
+type RateRowProps = {
+  label: string;
+  sublabel?: string;
+  value: string;
+  description: string;
+};
+
+function RateRow({ label, sublabel, value, description }: RateRowProps) {
+  return (
+    <div className={styles.rateRow}>
+      <div className={styles.rateText}>
+        <dt className={styles.rateLabel}>
+          {label}
+          {sublabel ? <span className={styles.rateLabelSub}> ({sublabel})</span> : null}
+        </dt>
+        <dd className={styles.rateDesc}>{description}</dd>
+      </div>
+      <div className={styles.rateValue}>{value}</div>
+    </div>
   );
 }
 

@@ -55,10 +55,63 @@
   color: var(--calc-color-text-emphasis);
 }
 
-.statsGrid {
+.sectionIntro {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--calc-color-text-muted);
+}
+
+.rateList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+}
+
+.rateRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.5rem 1rem;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border);
+  border-radius: 0.5rem;
+}
+
+.rateText {
+  min-width: 0;
+}
+
+.rateLabel {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--calc-color-text-emphasis);
+}
+
+.rateLabelSub {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--calc-color-text-subtle);
+}
+
+.rateDesc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--calc-color-text-muted);
+}
+
+.rateValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--calc-brand-lvt);
+  white-space: nowrap;
+  padding-top: 0.1rem;
 }
 
 .scrollX {
