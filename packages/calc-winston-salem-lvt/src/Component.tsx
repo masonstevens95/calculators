@@ -11,12 +11,21 @@ const DEFAULT_INPUTS: LvtInputs = {
   myParcel: { name: 'My parcel', land: 50_000, imp: 200_000 },
 };
 
+type TabId = 'city' | 'classes' | 'you';
+
 function fmtRate(r: number): string {
   return `$${(r * 100).toFixed(4)}/$100`;
 }
 
+function fmtSignedCurrency(v: number): string {
+  if (v === 0) return formatCurrency(0, { maximumFractionDigits: 0 });
+  const sign = v > 0 ? '+' : '−';
+  return `${sign}${formatCurrency(Math.abs(v), { maximumFractionDigits: 0 })}`;
+}
+
 export function WinstonSalemLvtComponent() {
   const [inputs, setInputs] = useState<LvtInputs>(DEFAULT_INPUTS);
+  const [tab, setTab] = useState<TabId>('city');
 
   const computation = useMemo(() => computeLvt(inputs), [inputs]);
 
@@ -33,6 +42,18 @@ export function WinstonSalemLvtComponent() {
   const shiftPct = Math.round(Math.max(0, Math.min(1, inputs.shift)) * 100);
   const badge =
     inputs.shift <= 0 ? '(current practice)' : inputs.shift >= 0.999 ? '(pure LVT)' : '(split-rate)';
+
+  const kDisplay = Number.isFinite(rates.impliedK)
+    ? `${formatNumber(rates.impliedK, { fractionDigits: 1 })}×`
+    : '∞';
+  const myDelta = myBill?.delta ?? 0;
+  const mySubline = !myBill
+    ? 'enter values'
+    : myDelta < 0
+      ? 'you pay less'
+      : myDelta > 0
+        ? 'you pay more'
+        : 'no change';
 
   return (
     <section className={styles.layout} aria-labelledby="lvt-heading">
@@ -70,108 +91,214 @@ export function WinstonSalemLvtComponent() {
         </FormField>
       </section>
 
+      <div role="tablist" aria-label="Impact perspective" className={styles.tabs}>
+        <TabCard
+          id="lvt-tab-city"
+          panelId="lvt-panel-city"
+          label="City budget"
+          value={formatCurrency(rates.target, { maximumFractionDigits: 0 })}
+          subline="held flat by design"
+          active={tab === 'city'}
+          onSelect={() => setTab('city')}
+        />
+        <TabCard
+          id="lvt-tab-classes"
+          panelId="lvt-panel-classes"
+          label="Parcel types"
+          value={kDisplay}
+          subline="land vs. buildings ratio"
+          active={tab === 'classes'}
+          onSelect={() => setTab('classes')}
+        />
+        <TabCard
+          id="lvt-tab-you"
+          panelId="lvt-panel-you"
+          label="Your bill"
+          value={myBill ? fmtSignedCurrency(myDelta) : '—'}
+          subline={mySubline}
+          active={tab === 'you'}
+          onSelect={() => setTab('you')}
+        />
+      </div>
+
       <AriaLive className={styles.results}>
-        <h2 className={styles.sectionHeading}>Required Rates</h2>
-        <div className={styles.statsGrid}>
-          <ResultDisplay label="Land rate" value={fmtRate(rates.landRate)} emphasis="primary" />
-          <ResultDisplay
-            label="Improvement rate"
-            value={fmtRate(rates.impRate)}
-            emphasis="primary"
-          />
-          <ResultDisplay label="Pure LVT rate (100% shift)" value={fmtRate(rates.pureLvtRate)} />
-          <ResultDisplay
-            label="Implied k (land ÷ imp)"
-            value={
-              Number.isFinite(rates.impliedK) ? formatNumber(rates.impliedK, { fractionDigits: 2 }) : '∞'
-            }
-          />
-          <ResultDisplay
-            label="Revenue target"
-            value={formatCurrency(rates.target, { maximumFractionDigits: 0 })}
-          />
+        <div
+          role="tabpanel"
+          id="lvt-panel-city"
+          aria-labelledby="lvt-tab-city"
+          hidden={tab !== 'city'}
+          className={styles.tabPanel}
+        >
+          <h2 className={styles.sectionHeading}>Required Rates</h2>
+          <div className={styles.statsGrid}>
+            <ResultDisplay label="Land rate" value={fmtRate(rates.landRate)} emphasis="primary" />
+            <ResultDisplay
+              label="Improvement rate"
+              value={fmtRate(rates.impRate)}
+              emphasis="primary"
+            />
+            <ResultDisplay label="Pure LVT rate (100% shift)" value={fmtRate(rates.pureLvtRate)} />
+            <ResultDisplay
+              label="Implied k (land ÷ imp)"
+              value={
+                Number.isFinite(rates.impliedK)
+                  ? formatNumber(rates.impliedK, { fractionDigits: 2 })
+                  : '∞'
+              }
+            />
+            <ResultDisplay
+              label="Revenue target"
+              value={formatCurrency(rates.target, { maximumFractionDigits: 0 })}
+            />
+          </div>
+          <p className={styles.tieBack}>
+            Revenue is held flat — the shift is paid by{' '}
+            <button type="button" className={styles.tieLink} onClick={() => setTab('classes')}>
+              parcel-type redistribution →
+            </button>
+          </p>
         </div>
 
-        <h2 className={styles.sectionHeading}>Sample Parcels</h2>
-        <div className={styles.scrollX}>
-          <table className={styles.parcelTable}>
-            <thead>
-              <tr>
-                <th>Parcel</th>
-                <th>Land</th>
-                <th>Improvements</th>
-                <th>Today</th>
-                <th>New</th>
-                <th>Δ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sampleBills.map((b) => (
-                <tr key={b.parcel.name}>
-                  <td>{b.parcel.name}</td>
-                  <td>{formatCurrency(b.parcel.land, { maximumFractionDigits: 0 })}</td>
-                  <td>{formatCurrency(b.parcel.imp, { maximumFractionDigits: 0 })}</td>
-                  <td>{formatCurrency(b.today, { maximumFractionDigits: 0 })}</td>
-                  <td>{formatCurrency(b.next, { maximumFractionDigits: 0 })}</td>
-                  <td className={b.delta > 0 ? styles.up : b.delta < 0 ? styles.down : ''}>
-                    {b.delta > 0 ? '+' : ''}
-                    {formatCurrency(b.delta, { maximumFractionDigits: 0 })}
-                  </td>
+        <div
+          role="tabpanel"
+          id="lvt-panel-classes"
+          aria-labelledby="lvt-tab-classes"
+          hidden={tab !== 'classes'}
+          className={styles.tabPanel}
+        >
+          <h2 className={styles.sectionHeading}>Sample Parcels</h2>
+          <div className={styles.scrollX}>
+            <table className={styles.parcelTable}>
+              <thead>
+                <tr>
+                  <th>Parcel</th>
+                  <th>Land</th>
+                  <th>Improvements</th>
+                  <th>Today</th>
+                  <th>New</th>
+                  <th>Δ</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sampleBills.map((b) => (
+                  <tr key={b.parcel.name}>
+                    <td>{b.parcel.name}</td>
+                    <td>{formatCurrency(b.parcel.land, { maximumFractionDigits: 0 })}</td>
+                    <td>{formatCurrency(b.parcel.imp, { maximumFractionDigits: 0 })}</td>
+                    <td>{formatCurrency(b.today, { maximumFractionDigits: 0 })}</td>
+                    <td>{formatCurrency(b.next, { maximumFractionDigits: 0 })}</td>
+                    <td className={b.delta > 0 ? styles.up : b.delta < 0 ? styles.down : ''}>
+                      {b.delta > 0 ? '+' : ''}
+                      {formatCurrency(b.delta, { maximumFractionDigits: 0 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h2 className={styles.sectionHeading}>Parcel Comparison</h2>
+          <div className={styles.chartWrap}>
+            <ParcelComparisonChart bills={sampleBills} shift={inputs.shift} />
+          </div>
+
+          <p className={styles.tieBack}>
+            See where your own parcel lands in{' '}
+            <button type="button" className={styles.tieLink} onClick={() => setTab('you')}>
+              Your bill →
+            </button>
+          </p>
         </div>
 
-        <h2 className={styles.sectionHeading}>Your Parcel</h2>
-        <div className={styles.myParcelGrid}>
-          <FormField label="Your land value">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.myParcel?.land ?? 0}
-                onChange={(v) =>
-                  setInputs((prev) => ({
-                    ...prev,
-                    myParcel: {
-                      name: prev.myParcel?.name ?? 'My parcel',
-                      land: v === '' ? 0 : v,
-                      imp: prev.myParcel?.imp ?? 0,
-                    },
-                  }))
-                }
-              />
-            )}
-          </FormField>
-          <FormField label="Your improvement value">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.myParcel?.imp ?? 0}
-                onChange={(v) =>
-                  setInputs((prev) => ({
-                    ...prev,
-                    myParcel: {
-                      name: prev.myParcel?.name ?? 'My parcel',
-                      land: prev.myParcel?.land ?? 0,
-                      imp: v === '' ? 0 : v,
-                    },
-                  }))
-                }
-              />
-            )}
-          </FormField>
-        </div>
-        {myBill ? <YourBillCard bill={myBill} shiftPct={shiftPct} /> : null}
+        <div
+          role="tabpanel"
+          id="lvt-panel-you"
+          aria-labelledby="lvt-tab-you"
+          hidden={tab !== 'you'}
+          className={styles.tabPanel}
+        >
+          <h2 className={styles.sectionHeading}>Your Parcel</h2>
+          <div className={styles.myParcelGrid}>
+            <FormField label="Your land value">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.myParcel?.land ?? 0}
+                  onChange={(v) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      myParcel: {
+                        name: prev.myParcel?.name ?? 'My parcel',
+                        land: v === '' ? 0 : v,
+                        imp: prev.myParcel?.imp ?? 0,
+                      },
+                    }))
+                  }
+                />
+              )}
+            </FormField>
+            <FormField label="Your improvement value">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.myParcel?.imp ?? 0}
+                  onChange={(v) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      myParcel: {
+                        name: prev.myParcel?.name ?? 'My parcel',
+                        land: prev.myParcel?.land ?? 0,
+                        imp: v === '' ? 0 : v,
+                      },
+                    }))
+                  }
+                />
+              )}
+            </FormField>
+          </div>
+          {myBill ? <YourBillCard bill={myBill} shiftPct={shiftPct} /> : null}
 
-        <h2 className={styles.sectionHeading}>Parcel Comparison</h2>
-        <div className={styles.chartWrap}>
-          <ParcelComparisonChart bills={sampleBills} shift={inputs.shift} />
+          <p className={styles.tieBack}>
+            Compare against the{' '}
+            <button type="button" className={styles.tieLink} onClick={() => setTab('classes')}>
+              parcel-type table →
+            </button>{' '}
+            to see who else moved.
+          </p>
         </div>
       </AriaLive>
     </section>
+  );
+}
+
+type TabCardProps = {
+  id: string;
+  panelId: string;
+  label: string;
+  value: string;
+  subline: string;
+  active: boolean;
+  onSelect: () => void;
+};
+
+function TabCard({ id, panelId, label, value, subline, active, onSelect }: TabCardProps) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      id={id}
+      aria-controls={panelId}
+      aria-selected={active}
+      tabIndex={active ? 0 : -1}
+      onClick={onSelect}
+      className={`${styles.tab} ${active ? styles.tabActive : ''}`}
+    >
+      <span className={styles.tabLabel}>{label}</span>
+      <span className={styles.tabValue}>{value}</span>
+      <span className={styles.tabSubline}>{subline}</span>
+    </button>
   );
 }
 
