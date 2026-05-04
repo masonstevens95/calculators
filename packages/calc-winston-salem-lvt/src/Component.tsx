@@ -168,7 +168,7 @@ export function WinstonSalemLvtComponent() {
 
         <h2 className={styles.sectionHeading}>Parcel Comparison</h2>
         <div className={styles.chartWrap}>
-          <ParcelComparisonChart bills={sampleBills} />
+          <ParcelComparisonChart bills={sampleBills} shift={inputs.shift} />
         </div>
       </AriaLive>
     </section>
