@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@apps/remote": "workspace:*"
+    "@apps/remote": "workspace:*",
+    "@calc/ui": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0",

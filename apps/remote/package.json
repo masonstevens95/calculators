@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@calc/ui": "workspace:*",
     "@module-federation/vite": "^1.15.1",
     "calc-birchwood-rent-sell": "workspace:*",
     "calc-eu5-loan": "workspace:*",
