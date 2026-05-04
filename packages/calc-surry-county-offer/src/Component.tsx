@@ -74,8 +74,8 @@ export function SurryCountyOfferComponent() {
       </div>
 
       <div className={styles.inputGrid}>
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Birchwood Sale</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Birchwood Sale</h2>
           <FormField label="Sale price">
             {({ id, describedBy }) => (
               <CurrencyInput
@@ -121,10 +121,10 @@ export function SurryCountyOfferComponent() {
             value={formatCurrency(r.netProceeds)}
             emphasis="primary"
           />
-        </fieldset>
+        </section>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Offer Parameters</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Offer Parameters</h2>
           <FormField label="Offer price">
             {({ id, describedBy }) => (
               <CurrencyInput
@@ -215,7 +215,7 @@ export function SurryCountyOfferComponent() {
               />
             )}
           </FormField>
-        </fieldset>
+        </section>
       </div>
 
       <AriaLive className={styles.results}>

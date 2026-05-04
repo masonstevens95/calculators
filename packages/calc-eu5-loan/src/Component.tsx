@@ -74,8 +74,8 @@ export function Eu5LoanComponent() {
       </div>
 
       <div className={styles.inputGrid}>
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Loan</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Loan</h2>
           <FormField label="Loan amount (g)">
             {({ id, describedBy }) => (
               <CurrencyInput
@@ -142,10 +142,10 @@ export function Eu5LoanComponent() {
               />
             )}
           </FormField>
-        </fieldset>
+        </section>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Building Income</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Building Income</h2>
           <FormField label="3-year cumulative profit (g)">
             {({ id, describedBy }) => (
               <CurrencyInput
@@ -187,7 +187,7 @@ export function Eu5LoanComponent() {
               />
             )}
           </FormField>
-        </fieldset>
+        </section>
       </div>
 
       <AriaLive className={styles.results}>
