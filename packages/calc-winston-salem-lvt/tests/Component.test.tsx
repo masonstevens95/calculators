@@ -21,11 +21,21 @@ describe('<WinstonSalemLvtComponent />', () => {
     expect(screen.getByRole('slider')).toBeInTheDocument();
   });
 
-  it('renders three tabs for the impact perspectives', () => {
+  it('renders four tabs for the impact perspectives', () => {
     render(<WinstonSalemLvtComponent />);
     expect(screen.getByRole('tab', { name: /city budget/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /parcel types/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /your bill/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /raise revenue/i })).toBeInTheDocument();
+  });
+
+  it('Raise revenue tab exposes a multiplier slider and dividend toggle', async () => {
+    const user = userEvent.setup();
+    render(<WinstonSalemLvtComponent />);
+    await user.click(screen.getByRole('tab', { name: /raise revenue/i }));
+    // Two sliders now visible: shift slider (always pinned) + multiplier slider in the panel.
+    expect(screen.getAllByRole('slider')).toHaveLength(2);
+    expect(screen.getByLabelText(/citizens' dividend/i)).toBeInTheDocument();
   });
 
   it('renders the sample-parcel table with 7 rows in the Parcel Types tab', async () => {

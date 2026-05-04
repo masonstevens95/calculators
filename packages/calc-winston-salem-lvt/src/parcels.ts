@@ -32,3 +32,6 @@ export const WS_BASE = {
   /** Current uniform rate (decimal: $0.5266 / $100). */
   rate: 0.005266,
 } as const;
+
+/** Winston-Salem city population, 2020 U.S. Census. Used for per-resident dividend math. */
+export const WS_POPULATION = 249_545;

@@ -47,6 +47,21 @@ describe('computeRates (split-rate inversion)', () => {
     const r = computeRates(0);
     expect(r.target).toBeCloseTo((WS_BASE.L + WS_BASE.I) * WS_BASE.rate, DOLLAR_EPS);
   });
+
+  it('revenueScale 1.5 raises target by 50% and scales rates accordingly', () => {
+    const baseline = computeRates(0);
+    const scaled = computeRates(0, WS_BASE, 1.5);
+    expect(scaled.target).toBeCloseTo(baseline.target * 1.5, DOLLAR_EPS);
+    expect(scaled.uniformRate).toBeCloseTo(WS_BASE.rate * 1.5, RATE_EPS);
+    expect(scaled.landRate).toBeCloseTo(WS_BASE.rate * 1.5, RATE_EPS);
+    expect(scaled.impRate).toBeCloseTo(WS_BASE.rate * 1.5, RATE_EPS);
+  });
+
+  it('revenueScale defaults to 1 when omitted', () => {
+    const baseline = computeRates(0);
+    const explicit = computeRates(0, WS_BASE, 1);
+    expect(explicit.target).toBeCloseTo(baseline.target, DOLLAR_EPS);
+  });
 });
 
 describe('computeParcelBill', () => {
@@ -121,6 +136,16 @@ describe('validateLvtInputs', () => {
       myParcel: { name: 'x', land: -1, imp: 0 },
     });
     expect(errors.myParcel).toBeTruthy();
+  });
+
+  it('rejects non-positive revenueScale', () => {
+    expect(validateLvtInputs({ shift: 0, revenueScale: 0 }).revenueScale).toBeTruthy();
+    expect(validateLvtInputs({ shift: 0, revenueScale: -1 }).revenueScale).toBeTruthy();
+    expect(validateLvtInputs({ shift: 0, revenueScale: Number.NaN }).revenueScale).toBeTruthy();
+  });
+
+  it('accepts a positive revenueScale', () => {
+    expect(validateLvtInputs({ shift: 0, revenueScale: 1.5 })).toEqual({});
   });
 });
 

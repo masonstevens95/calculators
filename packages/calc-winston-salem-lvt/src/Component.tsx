@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import { AriaLive, CurrencyInput, FormField, ResultDisplay } from '@calc/ui';
 import { formatCurrency, formatNumber, formatPercent } from '@calc/domain-utils';
-import { computeLvt } from './domain';
+import { computeLvt, computeParcelBill, computeRates } from './domain';
 import type { LvtInputs, ParcelBill } from './domain';
+import { SAMPLE_PARCELS, WS_BASE, WS_POPULATION } from './parcels';
 import { ParcelComparisonChart } from './charts/ParcelComparisonChart';
 import styles from './Component.module.css';
 
 const DEFAULT_INPUTS: LvtInputs = {
   shift: 0,
-  myParcel: { name: 'My parcel', land: 50_000, imp: 200_000 },
+  myParcel: { name: 'My parcel', land: 50_000, imp: 230_000 },
 };
 
-type TabId = 'city' | 'classes' | 'you';
+type TabId = 'city' | 'classes' | 'you' | 'raise';
 
 function fmtRate(r: number): string {
   return `$${(r * 100).toFixed(4)}/$100`;
@@ -26,8 +27,27 @@ function fmtSignedCurrency(v: number): string {
 export function WinstonSalemLvtComponent() {
   const [inputs, setInputs] = useState<LvtInputs>(DEFAULT_INPUTS);
   const [tab, setTab] = useState<TabId>('city');
+  const [revenueScale, setRevenueScale] = useState<number>(1);
+  const [showDividend, setShowDividend] = useState<boolean>(false);
 
   const computation = useMemo(() => computeLvt(inputs), [inputs]);
+
+  // Extrapolation lives in its own scope so revenueScale changes don't disturb
+  // the other three (revenue-neutral) tabs.
+  const raise = useMemo(() => {
+    const ratesScaled = computeRates(inputs.shift, WS_BASE, revenueScale);
+    const ratesBaseline = computeRates(inputs.shift, WS_BASE, 1);
+    const sampleScaled = SAMPLE_PARCELS.map((p) => computeParcelBill(p, ratesScaled, WS_BASE.rate));
+    const sampleBaseline = SAMPLE_PARCELS.map((p) =>
+      computeParcelBill(p, ratesBaseline, WS_BASE.rate),
+    );
+    const extra = ratesScaled.target - ratesBaseline.target;
+    const dividend = extra / WS_POPULATION;
+    const myScaled = inputs.myParcel
+      ? computeParcelBill(inputs.myParcel, ratesScaled, WS_BASE.rate)
+      : undefined;
+    return { ratesScaled, sampleScaled, sampleBaseline, extra, dividend, myScaled };
+  }, [inputs.shift, inputs.myParcel, revenueScale]);
 
   if (!computation.ok) {
     return (
@@ -43,9 +63,9 @@ export function WinstonSalemLvtComponent() {
   const badge =
     inputs.shift <= 0 ? '(current practice)' : inputs.shift >= 0.999 ? '(pure LVT)' : '(split-rate)';
 
-  const kDisplay = Number.isFinite(rates.impliedK)
-    ? `${formatNumber(rates.impliedK, { fractionDigits: 1 })}×`
-    : '∞';
+  // Sum of positive deltas across the 7 sample parcels — what the new bigger
+  // payers contribute extra. Sample-based estimate, not city-wide totals.
+  const burdenShifted = sampleBills.reduce((sum, b) => sum + Math.max(0, b.delta), 0);
   const myDelta = myBill?.delta ?? 0;
   const mySubline = !myBill
     ? 'enter values'
@@ -54,6 +74,7 @@ export function WinstonSalemLvtComponent() {
       : myDelta > 0
         ? 'you pay more'
         : 'no change';
+  const scalePct = Math.round((revenueScale - 1) * 100);
 
   return (
     <section className={styles.layout} aria-labelledby="lvt-heading">
@@ -62,8 +83,12 @@ export function WinstonSalemLvtComponent() {
           Winston-Salem LVT Calculator
         </h1>
         <p className={styles.subtitle}>
-          See how a split-rate (Land Value Tax) shift redistributes the property-tax base across
-          parcel types in Winston-Salem.
+          A <strong>Land Value Tax (LVT)</strong> taxes land at a higher rate than the buildings on
+          it — leaving today's property-tax revenue untouched, but shifting <em>who</em> pays. The
+          case for it: vacant lots and surface parking start paying their share, productive use of
+          land is rewarded, and (advocates argue) housing supply, redevelopment, and downtown
+          vibrancy improve over time. This calculator shows how the trade-off lands across
+          Winston-Salem property types — and on your own bill.
         </p>
       </div>
 
@@ -105,8 +130,12 @@ export function WinstonSalemLvtComponent() {
           id="lvt-tab-classes"
           panelId="lvt-panel-classes"
           label="Parcel types"
-          value={kDisplay}
-          subline="land vs. buildings ratio"
+          value={
+            burdenShifted > 0
+              ? `${formatCurrency(burdenShifted, { maximumFractionDigits: 0 })} shifts`
+              : '—'
+          }
+          subline="across parcel types"
           active={tab === 'classes'}
           onSelect={() => setTab('classes')}
         />
@@ -118,6 +147,19 @@ export function WinstonSalemLvtComponent() {
           subline={mySubline}
           active={tab === 'you'}
           onSelect={() => setTab('you')}
+        />
+        <TabCard
+          id="lvt-tab-raise"
+          panelId="lvt-panel-raise"
+          label="Raise revenue"
+          value={
+            raise.extra > 0
+              ? `+${formatCurrency(raise.extra, { maximumFractionDigits: 0 })}`
+              : '—'
+          }
+          subline="above current city collection"
+          active={tab === 'raise'}
+          onSelect={() => setTab('raise')}
         />
       </div>
 
@@ -278,6 +320,133 @@ export function WinstonSalemLvtComponent() {
               parcel-type table →
             </button>{' '}
             to see who else moved.
+          </p>
+        </div>
+
+        <div
+          role="tabpanel"
+          id="lvt-panel-raise"
+          aria-labelledby="lvt-tab-raise"
+          hidden={tab !== 'raise'}
+          className={styles.tabPanel}
+        >
+          <h2 className={styles.sectionHeading}>Raise revenue</h2>
+          <p className={styles.sectionIntro}>
+            The other tabs hold city revenue flat — a pure shift in <em>who</em> pays. Drag this
+            slider to ask a different question: what if Winston-Salem also collected{' '}
+            <em>more</em> via land tax? At {scalePct === 0 ? 'baseline' : `${scalePct}% above baseline`},
+            the city would raise{' '}
+            <strong>{formatCurrency(raise.ratesScaled.target, { maximumFractionDigits: 0 })}</strong>
+            {raise.extra > 0 ? (
+              <>
+                {' '}— that's{' '}
+                <strong>+{formatCurrency(raise.extra, { maximumFractionDigits: 0 })}</strong> above
+                today.
+              </>
+            ) : (
+              <> — same as today.</>
+            )}
+          </p>
+
+          <section className={styles.card}>
+            <h3 className={styles.cardTitle}>Revenue multiplier</h3>
+            <FormField
+              label={`${revenueScale.toFixed(2)}× current revenue${
+                scalePct > 0 ? ` (+${scalePct}%)` : ''
+              }`}
+              hint="1.00× = today's $193M target. 2.00× = double today's collection."
+            >
+              {({ id, describedBy }) => (
+                <input
+                  id={id}
+                  aria-describedby={describedBy}
+                  type="range"
+                  min={100}
+                  max={200}
+                  step={5}
+                  value={Math.round(revenueScale * 100)}
+                  onChange={(e) => setRevenueScale(Number(e.target.value) / 100)}
+                  className={styles.slider}
+                />
+              )}
+            </FormField>
+          </section>
+
+          <h3 className={styles.sectionHeading}>Where the extra comes from</h3>
+          <div className={styles.scrollX}>
+            <table className={styles.parcelTable}>
+              <thead>
+                <tr>
+                  <th>Parcel</th>
+                  <th>Today</th>
+                  <th>At {revenueScale.toFixed(2)}×</th>
+                  <th>Extra paid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {raise.sampleScaled.map((b, i) => {
+                  const baseline = raise.sampleBaseline[i]!;
+                  const extra = b.next - baseline.next;
+                  return (
+                    <tr key={b.parcel.name}>
+                      <td>{b.parcel.name}</td>
+                      <td>{formatCurrency(baseline.next, { maximumFractionDigits: 0 })}</td>
+                      <td>{formatCurrency(b.next, { maximumFractionDigits: 0 })}</td>
+                      <td className={extra > 0 ? styles.up : ''}>
+                        {extra > 0 ? '+' : ''}
+                        {formatCurrency(extra, { maximumFractionDigits: 0 })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={styles.dividendRow}>
+            <label className={styles.dividendToggle}>
+              <input
+                type="checkbox"
+                checked={showDividend}
+                onChange={(e) => setShowDividend(e.target.checked)}
+              />
+              <span>
+                Return the extra revenue as a <strong>citizens' dividend</strong>
+              </span>
+            </label>
+            <p className={styles.dividendHint}>
+              A specific Georgist policy proposal: split the new land-tax revenue equally among
+              residents. Not automatic — included so you can see the trade.
+            </p>
+          </div>
+
+          {showDividend ? (
+            <div className={styles.myBill}>
+              <ResultDisplay
+                label={`Per-resident dividend (W-S pop. ${formatNumber(WS_POPULATION, { fractionDigits: 0 })})`}
+                value={formatCurrency(raise.dividend, { maximumFractionDigits: 0 })}
+                emphasis="primary"
+              />
+              {raise.myScaled && inputs.myParcel ? (
+                <ResultDisplay
+                  label="Your net (extra paid − your dividend)"
+                  value={fmtSignedCurrency(
+                    raise.myScaled.next -
+                      computeParcelBill(inputs.myParcel, computeRates(inputs.shift, WS_BASE, 1), WS_BASE.rate)
+                        .next -
+                      raise.dividend,
+                  )}
+                />
+              ) : null}
+            </div>
+          ) : null}
+
+          <p className={styles.tieBack}>
+            This tab leaves revenue-neutrality. The other three tabs assume the city collects the
+            same total it does today —{' '}
+            <button type="button" className={styles.tieLink} onClick={() => setTab('city')}>
+              return to the City Budget view →
+            </button>
           </p>
         </div>
       </AriaLive>

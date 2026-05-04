@@ -176,7 +176,7 @@
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
   margin: 0.75rem 0 0;
 }
@@ -269,10 +269,46 @@
   outline: none;
 }
 
+.dividendRow {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--calc-color-border);
+  border-radius: 0.5rem;
+  background: var(--calc-color-surface-muted);
+}
+
+.dividendToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--calc-color-text-emphasis);
+  cursor: pointer;
+}
+
+.dividendToggle input {
+  accent-color: var(--calc-brand-lvt);
+  cursor: pointer;
+}
+
+.dividendHint {
+  margin: 0.4rem 0 0 1.6rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--calc-color-text-muted);
+}
+
 @media (max-width: 860px) {
   .myParcelGrid {
     grid-template-columns: 1fr;
   }
+  .tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
   .tabs {
     grid-template-columns: 1fr;
   }
