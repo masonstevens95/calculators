@@ -5,8 +5,8 @@
   width: 1px;
   height: 1px;
   overflow: hidden;
-  background: #000;
-  color: #fff;
+  background: var(--calc-color-skiplink-bg);
+  color: var(--calc-color-skiplink-text);
   padding: 0.5rem 1rem;
   z-index: 100;
 }
@@ -16,13 +16,14 @@
   top: 1rem;
   width: auto;
   height: auto;
-  outline: 2px solid #fff;
+  outline: 2px solid var(--calc-color-skiplink-text);
 }
 
 .header {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--calc-color-border);
   padding: 1rem 1.5rem;
-  background: #ffffff;
+  background: var(--calc-color-surface);
+  color: var(--calc-color-text-emphasis);
 }
 
 .brand {
@@ -44,12 +45,13 @@
   padding: 1.5rem;
   min-height: calc(100vh - 8rem);
   outline: none;
+  color: var(--calc-color-text);
 }
 
 .footer {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--calc-color-border);
   padding: 1rem 1.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
-  background: #fafafa;
+  color: var(--calc-color-text-subtle);
+  background: var(--calc-color-surface-muted);
 }

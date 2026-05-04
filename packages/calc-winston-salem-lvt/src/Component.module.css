@@ -2,6 +2,7 @@
   max-width: 76rem;
   margin: 0 auto;
   font-size: 0.92rem;
+  color: var(--calc-color-text);
 }
 
 .header {
@@ -11,18 +12,18 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: #2a6f4d;
+  color: var(--calc-brand-lvt);
 }
 
 .subtitle {
   margin: 0;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   font-size: 0.85rem;
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border);
   border-radius: 0.5rem;
   padding: 1rem 1.125rem;
   margin: 0 0 1rem;
@@ -31,7 +32,7 @@
 .cardTitle {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #2a6f4d;
+  color: var(--calc-brand-lvt);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 0 0.25rem;
@@ -39,7 +40,7 @@
 
 .slider {
   width: 100%;
-  accent-color: #2a6f4d;
+  accent-color: var(--calc-brand-lvt);
   cursor: pointer;
 }
 
@@ -51,7 +52,7 @@
   font-size: 0.95rem;
   font-weight: 700;
   margin: 1.5rem 0 0.5rem;
-  color: #1f2937;
+  color: var(--calc-color-text-emphasis);
 }
 
 .statsGrid {
@@ -68,12 +69,13 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  color: var(--calc-color-text);
 }
 
 .parcelTable th,
 .parcelTable td {
   padding: 0.45rem 0.6rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--calc-color-border-faint);
   text-align: right;
 }
 
@@ -83,20 +85,20 @@
 }
 
 .parcelTable th {
-  background: #f9fafb;
+  background: var(--calc-color-surface-muted);
   font-weight: 600;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .up {
-  color: #b45309;
+  color: var(--calc-brand-eu5);
 }
 
 .down {
-  color: #2a6f4d;
+  color: var(--calc-brand-lvt);
 }
 
 .myParcelGrid {
@@ -106,8 +108,8 @@
 }
 
 .myBill {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--calc-color-callout-success-bg);
+  border: 1px solid var(--calc-color-callout-success-border);
   border-radius: 0.5rem;
   padding: 0.5rem 1rem;
   margin-top: 0.5rem;

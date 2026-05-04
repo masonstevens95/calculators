@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart } from '@calc/charts';
+import { BarChart, readToken } from '@calc/charts';
 import type { ChartData, ChartOptions } from 'chart.js';
 
 export type PitiChartScenario = {
@@ -19,17 +19,25 @@ export function PitiChart({ scenarios }: PitiChartProps) {
     () => ({
       labels: scenarios.map((s) => s.label),
       datasets: [
-        { label: 'P&I', data: scenarios.map((s) => Math.round(s.pi)), backgroundColor: '#2d6a4f' },
-        { label: 'Tax', data: scenarios.map((s) => Math.round(s.tax)), backgroundColor: '#52b788' },
+        {
+          label: 'P&I',
+          data: scenarios.map((s) => Math.round(s.pi)),
+          backgroundColor: readToken('--calc-chart-series-pi', '#2d6a4f'),
+        },
+        {
+          label: 'Tax',
+          data: scenarios.map((s) => Math.round(s.tax)),
+          backgroundColor: readToken('--calc-chart-series-tax', '#52b788'),
+        },
         {
           label: 'Insurance',
           data: scenarios.map((s) => Math.round(s.ins)),
-          backgroundColor: '#b7e4c7',
+          backgroundColor: readToken('--calc-chart-series-ins', '#b7e4c7'),
         },
         {
           label: 'PMI',
           data: scenarios.map((s) => Math.round(s.pmiMo)),
-          backgroundColor: '#e76f51',
+          backgroundColor: readToken('--calc-chart-series-pmi', '#e76f51'),
         },
       ],
     }),

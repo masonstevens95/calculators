@@ -2,9 +2,9 @@
   max-width: 36rem;
   margin: 2rem auto;
   padding: 1.25rem 1.5rem;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #7f1d1d;
+  border: 1px solid var(--calc-color-error-border);
+  background: var(--calc-color-error-bg);
+  color: var(--calc-color-error-strong);
   border-radius: 0.5rem;
 }
 
@@ -18,8 +18,8 @@
 }
 
 .detail {
-  background: #fff;
-  color: #111827;
+  background: var(--calc-color-surface-raised);
+  color: var(--calc-color-text-emphasis);
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.85rem;

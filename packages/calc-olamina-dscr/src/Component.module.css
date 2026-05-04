@@ -2,6 +2,7 @@
   max-width: 80rem;
   margin: 0 auto;
   font-size: 0.92rem;
+  color: var(--calc-color-text);
 }
 
 .header {
@@ -11,19 +12,19 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: #4338ca;
+  color: var(--calc-brand-olamina);
 }
 
 .subtitle {
   margin: 0;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   font-size: 0.85rem;
 }
 
 .privacyNote {
   margin: 0.5rem 0 0;
   font-size: 0.8rem;
-  color: #16a34a;
+  color: var(--calc-color-privacy-text);
   font-weight: 500;
 }
 
@@ -35,9 +36,9 @@
 }
 
 .presetBtn {
-  background: #ede9fe;
-  border: 1px solid #c4b5fd;
-  color: #4338ca;
+  background: var(--calc-brand-olamina-pale);
+  border: 1px solid var(--calc-brand-olamina-border);
+  color: var(--calc-brand-olamina-strong);
   padding: 0.4rem 0.75rem;
   border-radius: 0.375rem;
   cursor: pointer;
@@ -47,12 +48,12 @@
 
 .presetBtn:hover,
 .presetBtn:focus-visible {
-  background: #c4b5fd;
+  background: var(--calc-brand-olamina-border);
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border);
   border-radius: 0.5rem;
   padding: 1rem 1.125rem;
   margin: 0 0 1rem;
@@ -61,7 +62,7 @@
 .cardTitle {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 0 0.25rem;
@@ -73,9 +74,10 @@
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.4rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--calc-color-input-border);
   border-radius: 0.375rem;
-  background: #fff;
+  background: var(--calc-color-input-bg);
+  color: var(--calc-color-text-emphasis);
 }
 
 .homesGrid {
@@ -86,8 +88,8 @@
 }
 
 .homeSlot {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--calc-color-surface-stripe);
+  border: 1px solid var(--calc-color-border);
   border-radius: 0.375rem;
   padding: 0.75rem;
 }
@@ -101,7 +103,7 @@
 
 .homeMeta {
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--calc-color-text-subtle);
   margin: 0.5rem 0;
 }
 
@@ -118,7 +120,7 @@
 .sectionHeading {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--calc-color-text-emphasis);
   margin: 1.5rem 0 0.5rem;
 }
 
@@ -130,12 +132,13 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  color: var(--calc-color-text);
 }
 
 .breakdownTable th,
 .breakdownTable td {
   padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--calc-color-border-faint);
   text-align: right;
 }
 
@@ -145,18 +148,18 @@
 }
 
 .breakdownTable th {
-  background: #f9fafb;
+  background: var(--calc-color-surface-muted);
   font-weight: 600;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .totalRow td {
-  border-top: 2px solid #e5e7eb;
+  border-top: 2px solid var(--calc-color-border);
   font-weight: 700;
-  background: #f9fafb;
+  background: var(--calc-color-surface-muted);
 }
 
 .summaryGrid {
@@ -168,7 +171,7 @@
 .cashStack {
   display: flex;
   flex-direction: column;
-  background: #f9fafb;
+  background: var(--calc-color-surface-muted);
   border-radius: 0.5rem;
   padding: 0.5rem 1rem;
 }

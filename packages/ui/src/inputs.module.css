@@ -1,10 +1,10 @@
 .input {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--calc-color-input-border);
   border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
   font: inherit;
-  background: #ffffff;
-  color: #111827;
+  background: var(--calc-color-input-bg);
+  color: var(--calc-color-text-emphasis);
   width: 100%;
   box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -12,8 +12,8 @@
 
 .input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  border-color: var(--calc-color-input-focus-border);
+  box-shadow: 0 0 0 3px var(--calc-color-focus-ring);
 }
 
 .currencyWrapper,
@@ -27,7 +27,7 @@
 .currencySymbol,
 .percentSymbol {
   position: absolute;
-  color: #6b7280;
+  color: var(--calc-color-text-subtle);
   font-size: 0.95rem;
   pointer-events: none;
 }

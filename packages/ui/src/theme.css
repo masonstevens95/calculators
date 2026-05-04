@@ -1,0 +1,128 @@
+/**
+ * @calc/ui theme tokens — semantic CSS variables shared across all calc surfaces.
+ *
+ * Every color is authored as a `light-dark(<lightHex>, <darkHex>)` value so the
+ * resolved color flips automatically based on the document's used color-scheme.
+ * Components consume `var(--calc-color-X)` rather than hardcoded hex.
+ *
+ * Required: `:root` must declare `color-scheme: light dark` for `light-dark()`
+ * to resolve correctly. We do that here.
+ *
+ * Browser support: Baseline (May 2024), ~97% global support.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* ===== Surfaces ===== */
+  --calc-color-surface:         light-dark(#ffffff, #0f172a);
+  --calc-color-surface-raised:  light-dark(#ffffff, #1e293b);
+  --calc-color-surface-muted:   light-dark(#fafafa, #1e293b);
+  --calc-color-surface-stripe:  light-dark(#f9fafb, #1e293b);
+  --calc-color-canvas-shadow:   light-dark(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.4));
+
+  /* ===== Borders ===== */
+  --calc-color-border:          light-dark(#e5e7eb, #334155);
+  --calc-color-border-faint:    light-dark(#f0f0f0, #1e293b);
+  --calc-color-border-surry:    light-dark(#dde5dc, #334155);
+
+  /* ===== Text ===== */
+  --calc-color-text:            light-dark(#1f2937, #e5e7eb);
+  --calc-color-text-emphasis:   light-dark(#111827, #f1f5f9);
+  --calc-color-text-muted:      light-dark(#4b5563, #cbd5e1);
+  --calc-color-text-subtle:     light-dark(#6b7280, #94a3b8);
+  --calc-color-text-surry:      light-dark(#6b8068, #a8b8a3);
+
+  /* ===== Inputs ===== */
+  --calc-color-input-bg:           light-dark(#ffffff, #1e293b);
+  --calc-color-input-border:       light-dark(#d1d5db, #475569);
+  --calc-color-input-focus-border: light-dark(#6366f1, #818cf8);
+  --calc-color-focus-ring:         light-dark(rgba(99, 102, 241, 0.18), rgba(129, 140, 248, 0.35));
+
+  /* ===== Status: error / negative / positive / warn ===== */
+  --calc-color-error-bg:        light-dark(#fef2f2, #450a0a);
+  --calc-color-error-border:    light-dark(#fecaca, #7f1d1d);
+  --calc-color-error-text:      light-dark(#b91c1c, #fca5a5);
+  --calc-color-error-strong:    light-dark(#7f1d1d, #fecaca);
+  --calc-color-pos:             light-dark(#16a34a, #4ade80);
+  --calc-color-pos-strong:      light-dark(#15803d, #86efac);
+  --calc-color-neg:             light-dark(#b91c1c, #fca5a5);
+  --calc-color-warn:            light-dark(#b45309, #f59e0b);
+
+  /* ===== Callout / informational backgrounds ===== */
+  --calc-color-callout-amber-bg:      light-dark(#fef3c7, #422006);
+  --calc-color-callout-amber-border:  light-dark(#fde68a, #78350f);
+  --calc-color-callout-danger-bg:     light-dark(#fee2e2, #450a0a);
+  --calc-color-callout-danger-border: light-dark(#fecaca, #7f1d1d);
+  --calc-color-callout-success-bg:    light-dark(#dcfce7, #052e16);
+  --calc-color-callout-success-border: light-dark(#bbf7d0, #14532d);
+  --calc-color-callout-info-bg:       light-dark(#f0f9ff, #082f49);
+  --calc-color-callout-info-border:   light-dark(#bae6fd, #075985);
+  --calc-color-callout-winner-bg:     light-dark(#fffbeb, #422006);
+  --calc-color-callout-winner-border: light-dark(#f59e0b, #f59e0b);
+  --calc-color-callout-winner-shadow: light-dark(rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.35));
+
+  /* ===== Privacy disclosure (LGS / Olamina personal-loan calcs) ===== */
+  --calc-color-privacy-bg:      light-dark(#f0fdf4, #052e16);
+  --calc-color-privacy-text:    light-dark(#16a34a, #4ade80);
+  --calc-color-privacy-border:  light-dark(#bbf7d0, #14532d);
+
+  /* ===== Buttons / interactive (preset chips, etc.) ===== */
+  --calc-color-button-bg:       light-dark(#e5e7eb, #334155);
+  --calc-color-button-bg-hover: light-dark(#cbd5e1, #475569);
+
+  /* ===== Skip-link contrast (always-on max contrast) ===== */
+  --calc-color-skiplink-bg:     light-dark(#000000, #f1f5f9);
+  --calc-color-skiplink-text:   light-dark(#ffffff, #0f172a);
+
+  /* ===== Brand accents (per-calc heading + accent colors) ===== */
+  --calc-brand-surry:            light-dark(#2d6a4f, #52b788);
+  --calc-brand-surry-mid:        light-dark(#52b788, #86efac);
+  --calc-brand-surry-pale-line:  light-dark(#d8f3dc, #166534);
+  --calc-brand-surry-hl-bg:      light-dark(#edf7f0, #14532d);
+  --calc-brand-surry-custom-bg:  light-dark(#eef2fc, #312e81);
+
+  --calc-brand-lgs:              light-dark(#1f2937, #f1f5f9);
+
+  --calc-brand-olamina:          light-dark(#4338ca, #818cf8);
+  --calc-brand-olamina-pale:     light-dark(#ede9fe, #312e81);
+  --calc-brand-olamina-border:   light-dark(#c4b5fd, #4338ca);
+  --calc-brand-olamina-strong:   light-dark(#4338ca, #c4b5fd);
+
+  --calc-brand-eu5:              light-dark(#b45309, #f59e0b);
+  --calc-brand-eu5-pale:         light-dark(#fef3c7, #422006);
+
+  --calc-brand-lvt:              light-dark(#2a6f4d, #52b788);
+
+  --calc-brand-birchwood:        light-dark(#be185d, #f472b6);
+  --calc-brand-birchwood-card:   light-dark(#f0fdf4, #052e16);
+  --calc-brand-birchwood-card-border: light-dark(#bbf7d0, #14532d);
+
+  /* ===== Chart series + axis (canvas, JS-read via getComputedStyle) ===== */
+  --calc-chart-axis-text:        light-dark(#6b7280, #94a3b8);
+  --calc-chart-axis-grid:        light-dark(#e5e7eb, #334155);
+
+  /* Surry: PI / Tax / Ins / PMI stack */
+  --calc-chart-series-pi:        light-dark(#2d6a4f, #34d399);
+  --calc-chart-series-tax:       light-dark(#52b788, #86efac);
+  --calc-chart-series-ins:       light-dark(#b7e4c7, #a7f3d0);
+  --calc-chart-series-pmi:       light-dark(#e76f51, #fb923c);
+
+  /* Surry CashChart reserve color tiers */
+  --calc-chart-reserve-pos:      light-dark(#2d6a4f, #4ade80);
+  --calc-chart-reserve-warn:     light-dark(#e76f51, #fb923c);
+  --calc-chart-reserve-neg:      light-dark(#c62828, #fca5a5);
+
+  /* Birchwood (cashflow / wealth / sensitivity) */
+  --calc-chart-managed:          light-dark(#14b8a6, #5eead4);
+  --calc-chart-self:             light-dark(#f59e0b, #fbbf24);
+  --calc-chart-breakeven:        light-dark(#ef4444, #fca5a5);
+  --calc-chart-sell:             light-dark(#14b8a6, #5eead4);
+  --calc-chart-rent:             light-dark(#ef4444, #fca5a5);
+  --calc-chart-rent-ahead:       light-dark(rgba(20, 184, 166, 0.85), rgba(94, 234, 212, 0.85));
+  --calc-chart-sell-ahead:       light-dark(rgba(239, 68, 68, 0.85), rgba(252, 165, 165, 0.85));
+
+  /* LVT (today / split / pure) */
+  --calc-chart-lvt-today:        light-dark(#999999, #94a3b8);
+  --calc-chart-lvt-split:        light-dark(#2a6f4d, #52b788);
+  --calc-chart-lvt-pure:         light-dark(#b85c00, #f59e0b);
+}

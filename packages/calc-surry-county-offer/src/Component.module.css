@@ -2,6 +2,7 @@
   max-width: 70rem;
   margin: 0 auto;
   font-size: 0.92rem;
+  color: var(--calc-color-text);
 }
 
 .header {
@@ -11,12 +12,12 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: #2d6a4f;
+  color: var(--calc-brand-surry);
 }
 
 .subtitle {
   margin: 0;
-  color: #6b8068;
+  color: var(--calc-color-text-surry);
   font-size: 0.85rem;
 }
 
@@ -28,8 +29,8 @@
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #dde5dc;
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border-surry);
   border-radius: 10px;
   padding: 1rem 1.125rem;
 }
@@ -37,12 +38,12 @@
 .cardTitle {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #2d6a4f;
+  color: var(--calc-brand-surry);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding-bottom: 0.5rem;
   margin: 0 0 0.75rem;
-  border-bottom: 2px solid #d8f3dc;
+  border-bottom: 2px solid var(--calc-brand-surry-pale-line);
 }
 
 .twoCol {
@@ -58,7 +59,7 @@
 .sectionHeading {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #2d6a4f;
+  color: var(--calc-brand-surry);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 0.5rem;
@@ -79,7 +80,7 @@
 
 .note {
   font-size: 0.78rem;
-  color: #6b8068;
+  color: var(--calc-color-text-surry);
   margin: 0.5rem 0 0;
 }
 
@@ -91,13 +92,18 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  color: var(--calc-color-text);
 }
 
 .scTable th,
 .scTable td {
   text-align: right;
   padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--calc-color-border-faint);
+}
+
+.scTable th {
+  color: var(--calc-color-text-muted);
 }
 
 .scTable th:first-child,
@@ -111,11 +117,11 @@
 }
 
 .hlCol {
-  background: #edf7f0;
+  background: var(--calc-brand-surry-hl-bg);
 }
 
 .customCol {
-  background: #eef2fc;
+  background: var(--calc-brand-surry-custom-bg);
 }
 
 .chartsGrid {

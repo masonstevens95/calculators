@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart } from '@calc/charts';
+import { BarChart, readToken } from '@calc/charts';
 import type { ChartData, ChartOptions } from 'chart.js';
 import type { ParcelBill } from '../domain';
 
@@ -15,17 +15,17 @@ export function ParcelComparisonChart({ bills }: ParcelComparisonChartProps) {
         {
           label: 'Today (uniform)',
           data: bills.map((b) => Math.round(b.today)),
-          backgroundColor: '#999',
+          backgroundColor: readToken('--calc-chart-lvt-today', '#999999'),
         },
         {
           label: 'Split-rate',
           data: bills.map((b) => Math.round(b.next)),
-          backgroundColor: '#2a6f4d',
+          backgroundColor: readToken('--calc-chart-lvt-split', '#2a6f4d'),
         },
         {
           label: 'Pure LVT',
           data: bills.map((b) => Math.round(b.pure)),
-          backgroundColor: '#b85c00',
+          backgroundColor: readToken('--calc-chart-lvt-pure', '#b85c00'),
         },
       ],
     }),

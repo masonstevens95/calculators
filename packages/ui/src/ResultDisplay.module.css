@@ -5,12 +5,12 @@
   align-items: baseline;
   padding: 0.5rem 0;
   margin: 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--calc-color-border-faint);
 }
 
 .label {
   margin: 0;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   font-size: 0.95rem;
 }
 
@@ -19,16 +19,17 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
+  color: var(--calc-color-text);
 }
 
 .detail {
   margin: 0;
   grid-column: 1 / -1;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--calc-color-text-subtle);
 }
 
 .row[data-emphasis='primary'] .value {
   font-size: 1.25rem;
-  color: #1f2937;
+  color: var(--calc-color-text-emphasis);
 }
