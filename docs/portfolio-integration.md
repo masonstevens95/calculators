@@ -110,3 +110,20 @@ The CORS allowlist on the remote (set in `vercel.json`, U11) is a deployment
 pre-condition per KTD #25. Production deploys require the **specific** portfolio host
 origin in `Access-Control-Allow-Origin`; permissive values (`*`) are only acceptable
 for preview deploys.
+
+## Canvas color-scheme behavior
+
+The remote declares `color-scheme: light dark` plus an explicit light page canvas
+(`background-color: #ffffff; color: #111827`) on `:root` in both `apps/remote/index.html`
+and `apps/harness/index.html`. This satisfies the W3C iframe-substitution rule (per the
+[CSS Color Adjust spec](https://www.w3.org/TR/css-color-adjust-1/)) so a host with a
+different `color-scheme` than the iframe does not get a browser-substituted opaque
+canvas — the iframe declares its own canvas explicitly and renders deterministically
+across light- and dark-OS visitors.
+
+Calc surfaces (cards, form inputs, brand accents, chart panels) are light-only at v1.
+Full OS-adaptive theming — including dark-mode calc surfaces, brand-accent dark
+variants, a partner-brand-token override channel, and a user-facing toggle — is a
+separate roadmap item, not delivered by this fix. Hosts that want to influence calc
+appearance today have no programmatic surface beyond the federation expose contract
+above.

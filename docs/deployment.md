@@ -110,7 +110,7 @@ If a future MF release adds another sibling artifact, add it to this list.
 
 ## Verification (post-deploy)
 
-Manual checks. Run all four after every production deploy:
+Manual checks. Run all five after every production deploy:
 
 ### 1. CSP headers present
 
@@ -150,6 +150,22 @@ URL. Vercel handles this automatically.
 1. Open a Substack draft.
 2. Add an iframe block: `<iframe src="https://<deployed-origin>/embed/surry-county-offer" />`.
 3. Confirm the calc renders, inputs are interactive, no console errors.
+
+### 5. Dark-OS canvas check
+
+The iframe declares `color-scheme: light dark` plus an explicit light canvas on
+`:root` (see `Canvas color-scheme behavior` in `docs/portfolio-integration.md`). On a
+dark-OS visit the canvas should remain explicitly light, not substituted by the UA.
+
+1. Toggle your OS to dark mode.
+2. Open `https://<deployed-origin>/embed/surry-county-offer` directly in a fresh
+   browser tab (no Substack frame).
+3. Confirm the page background is white (`#ffffff`), the calc page heading reads in
+   `#111827` text, and there is no clashing dark substituted canvas. If the page
+   renders dark or the heading is low-contrast, the inline `<style>` in
+   `apps/remote/index.html` did not survive the build — inspect `dist/index.html` to
+   confirm the `:root { color-scheme: light dark; background-color: #ffffff; ... }`
+   block is present **before** the `mf-entry-bootstrap-0.js` `<script>` tag.
 
 ## Rollback
 
