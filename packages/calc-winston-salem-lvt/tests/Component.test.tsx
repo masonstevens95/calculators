@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { WinstonSalemLvtComponent } from '../src/Component';
 
@@ -20,15 +21,26 @@ describe('<WinstonSalemLvtComponent />', () => {
     expect(screen.getByRole('slider')).toBeInTheDocument();
   });
 
-  it('renders the sample-parcel table with 7 rows', () => {
+  it('renders three tabs for the impact perspectives', () => {
     render(<WinstonSalemLvtComponent />);
+    expect(screen.getByRole('tab', { name: /city budget/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /parcel types/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /your bill/i })).toBeInTheDocument();
+  });
+
+  it('renders the sample-parcel table with 7 rows in the Parcel Types tab', async () => {
+    const user = userEvent.setup();
+    render(<WinstonSalemLvtComponent />);
+    await user.click(screen.getByRole('tab', { name: /parcel types/i }));
     const tables = screen.getAllByRole('table');
     const parcelTable = tables[0]!;
     expect(parcelTable.querySelectorAll('tbody tr')).toHaveLength(7);
   });
 
-  it('renders the chart with an aria-label', () => {
+  it('renders the chart with an aria-label in the Parcel Types tab', async () => {
+    const user = userEvent.setup();
     render(<WinstonSalemLvtComponent />);
+    await user.click(screen.getByRole('tab', { name: /parcel types/i }));
     expect(
       screen.getByRole('img', { name: /annual tax by parcel/i }),
     ).toBeInTheDocument();
@@ -39,8 +51,10 @@ describe('<WinstonSalemLvtComponent />', () => {
     expect(container.querySelector('[aria-live]')).not.toBeNull();
   });
 
-  it('renders the user-parcel inputs', () => {
+  it('renders the user-parcel inputs in the Your Bill tab', async () => {
+    const user = userEvent.setup();
     render(<WinstonSalemLvtComponent />);
+    await user.click(screen.getByRole('tab', { name: /your bill/i }));
     expect(screen.getByLabelText(/your land value/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/your improvement value/i)).toBeInTheDocument();
   });
