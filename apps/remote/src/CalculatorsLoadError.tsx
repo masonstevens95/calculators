@@ -1,3 +1,4 @@
+import '@calc/ui/theme.css';
 import styles from './CalculatorsLoadError.module.css';
 
 export type CalculatorsLoadErrorProps = {

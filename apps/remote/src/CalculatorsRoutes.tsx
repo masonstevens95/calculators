@@ -1,3 +1,4 @@
+import '@calc/ui/theme.css';
 import { AppRoutes } from './routes';
 
 // Router-less variant for federated hosts that already provide a router (KTD #20).

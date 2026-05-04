@@ -97,32 +97,71 @@
   --calc-brand-birchwood-card:   light-dark(#f0fdf4, #052e16);
   --calc-brand-birchwood-card-border: light-dark(#bbf7d0, #14532d);
 
-  /* ===== Chart series + axis (canvas, JS-read via getComputedStyle) ===== */
-  --calc-chart-axis-text:        light-dark(#6b7280, #94a3b8);
-  --calc-chart-axis-grid:        light-dark(#e5e7eb, #334155);
+  /* ===== Chart series + axis =====
+   *
+   * Chart.js draws to <canvas>, which doesn't inherit CSS. Per-series and
+   * axis colors are read in JS via getComputedStyle(...).getPropertyValue().
+   *
+   * IMPORTANT: getPropertyValue returns the *authored* value of a custom
+   * property, NOT the resolved color. So light-dark() values come back as
+   * the literal string "light-dark(#aaa, #bbb)" — Chart.js can't parse
+   * that. For chart tokens we use plain hex values overridden via
+   * @media (prefers-color-scheme: dark) below; getPropertyValue then
+   * returns a real hex string Chart.js handles correctly.
+   */
+  --calc-chart-axis-text:        #6b7280;
+  --calc-chart-axis-grid:        #e5e7eb;
 
   /* Surry: PI / Tax / Ins / PMI stack */
-  --calc-chart-series-pi:        light-dark(#2d6a4f, #34d399);
-  --calc-chart-series-tax:       light-dark(#52b788, #86efac);
-  --calc-chart-series-ins:       light-dark(#b7e4c7, #a7f3d0);
-  --calc-chart-series-pmi:       light-dark(#e76f51, #fb923c);
+  --calc-chart-series-pi:        #2d6a4f;
+  --calc-chart-series-tax:       #52b788;
+  --calc-chart-series-ins:       #b7e4c7;
+  --calc-chart-series-pmi:       #e76f51;
 
   /* Surry CashChart reserve color tiers */
-  --calc-chart-reserve-pos:      light-dark(#2d6a4f, #4ade80);
-  --calc-chart-reserve-warn:     light-dark(#e76f51, #fb923c);
-  --calc-chart-reserve-neg:      light-dark(#c62828, #fca5a5);
+  --calc-chart-reserve-pos:      #2d6a4f;
+  --calc-chart-reserve-warn:     #e76f51;
+  --calc-chart-reserve-neg:      #c62828;
 
   /* Birchwood (cashflow / wealth / sensitivity) */
-  --calc-chart-managed:          light-dark(#14b8a6, #5eead4);
-  --calc-chart-self:             light-dark(#f59e0b, #fbbf24);
-  --calc-chart-breakeven:        light-dark(#ef4444, #fca5a5);
-  --calc-chart-sell:             light-dark(#14b8a6, #5eead4);
-  --calc-chart-rent:             light-dark(#ef4444, #fca5a5);
-  --calc-chart-rent-ahead:       light-dark(rgba(20, 184, 166, 0.85), rgba(94, 234, 212, 0.85));
-  --calc-chart-sell-ahead:       light-dark(rgba(239, 68, 68, 0.85), rgba(252, 165, 165, 0.85));
+  --calc-chart-managed:          #14b8a6;
+  --calc-chart-self:             #f59e0b;
+  --calc-chart-breakeven:        #ef4444;
+  --calc-chart-sell:             #14b8a6;
+  --calc-chart-rent:             #ef4444;
+  --calc-chart-rent-ahead:       rgba(20, 184, 166, 0.85);
+  --calc-chart-sell-ahead:       rgba(239, 68, 68, 0.85);
 
   /* LVT (today / split / pure) */
-  --calc-chart-lvt-today:        light-dark(#999999, #94a3b8);
-  --calc-chart-lvt-split:        light-dark(#2a6f4d, #52b788);
-  --calc-chart-lvt-pure:         light-dark(#b85c00, #f59e0b);
+  --calc-chart-lvt-today:        #999999;
+  --calc-chart-lvt-split:        #2a6f4d;
+  --calc-chart-lvt-pure:         #b85c00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --calc-chart-axis-text:        #94a3b8;
+    --calc-chart-axis-grid:        #334155;
+
+    --calc-chart-series-pi:        #34d399;
+    --calc-chart-series-tax:       #86efac;
+    --calc-chart-series-ins:       #a7f3d0;
+    --calc-chart-series-pmi:       #fb923c;
+
+    --calc-chart-reserve-pos:      #4ade80;
+    --calc-chart-reserve-warn:     #fb923c;
+    --calc-chart-reserve-neg:      #fca5a5;
+
+    --calc-chart-managed:          #5eead4;
+    --calc-chart-self:             #fbbf24;
+    --calc-chart-breakeven:        #fca5a5;
+    --calc-chart-sell:             #5eead4;
+    --calc-chart-rent:             #fca5a5;
+    --calc-chart-rent-ahead:       rgba(94, 234, 212, 0.85);
+    --calc-chart-sell-ahead:       rgba(252, 165, 165, 0.85);
+
+    --calc-chart-lvt-today:        #94a3b8;
+    --calc-chart-lvt-split:        #52b788;
+    --calc-chart-lvt-pure:         #f59e0b;
+  }
 }

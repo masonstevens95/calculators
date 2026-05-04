@@ -1,4 +1,5 @@
 import { BrowserRouter } from 'react-router-dom';
+import '@calc/ui/theme.css';
 import { AppRoutes } from './routes';
 
 // Self-routing variant for direct visit, iframe embed, and the harness app
