@@ -2,6 +2,7 @@
   max-width: 76rem;
   margin: 0 auto;
   font-size: 0.92rem;
+  color: var(--calc-color-text);
 }
 
 .header {
@@ -11,18 +12,18 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: #be185d;
+  color: var(--calc-brand-birchwood);
 }
 
 .subtitle {
   margin: 0;
-  color: #4b5563;
+  color: var(--calc-color-text-muted);
   font-size: 0.85rem;
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border);
   border-radius: 0.5rem;
   padding: 1rem 1.125rem;
   margin: 0 0 1rem;
@@ -31,7 +32,7 @@
 .cardTitle {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #be185d;
+  color: var(--calc-brand-birchwood);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 0 0.25rem;
@@ -47,9 +48,10 @@
   display: block;
   width: 100%;
   padding: 0.4rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--calc-color-input-border);
   border-radius: 0.375rem;
-  background: #fff;
+  background: var(--calc-color-input-bg);
+  color: var(--calc-color-text-emphasis);
 }
 
 .results {
@@ -60,7 +62,7 @@
   font-size: 0.95rem;
   font-weight: 700;
   margin: 1.5rem 0 0.5rem;
-  color: #1f2937;
+  color: var(--calc-color-text-emphasis);
 }
 
 .statsGrid {
@@ -76,20 +78,21 @@
 }
 
 .s121 {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
+  background: var(--calc-color-callout-info-bg);
+  border: 1px solid var(--calc-color-callout-info-border);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
+  color: var(--calc-color-text);
 }
 
 .s121[data-urgency='warning'] {
-  background: #fef3c7;
-  border-color: #fde68a;
+  background: var(--calc-color-callout-amber-bg);
+  border-color: var(--calc-color-callout-amber-border);
 }
 
 .s121[data-urgency='critical'] {
-  background: #fee2e2;
-  border-color: #fecaca;
+  background: var(--calc-color-callout-danger-bg);
+  border-color: var(--calc-color-callout-danger-border);
 }
 
 .s121Lead {
@@ -98,12 +101,12 @@
 }
 
 .deadline {
-  color: #b91c1c;
+  color: var(--calc-color-error-text);
 }
 
 .timelineTrack {
   height: 8px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--calc-color-canvas-shadow);
   border-radius: 999px;
   overflow: hidden;
   margin: 0.5rem 0;
@@ -111,12 +114,12 @@
 
 .timelineFill {
   height: 100%;
-  background: linear-gradient(to right, #16a34a, #f59e0b, #b91c1c);
+  background: linear-gradient(to right, var(--calc-color-pos), var(--calc-brand-eu5), var(--calc-color-error-text));
   transition: width 0.2s ease;
 }
 
 .s121Msg {
   margin: 0;
   font-size: 0.85rem;
-  color: #1f2937;
+  color: var(--calc-color-text-emphasis);
 }

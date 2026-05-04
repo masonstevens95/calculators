@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { LineChart, BarChart } from '@calc/charts';
+import { LineChart, BarChart, readToken } from '@calc/charts';
 import type { ChartData, ChartOptions } from 'chart.js';
 import type { CashflowPoint, SensitivityPoint, WealthPoint } from '../domain';
 
@@ -13,7 +13,7 @@ export function CashflowChart({ points }: CashflowChartProps) {
         {
           label: 'Managed (9%)',
           data: points.map((p) => p.managedCf),
-          borderColor: '#14b8a6',
+          borderColor: readToken('--calc-chart-managed', '#14b8a6'),
           backgroundColor: 'rgba(20,184,166,0.07)',
           tension: 0.15,
           pointRadius: 0,
@@ -22,7 +22,7 @@ export function CashflowChart({ points }: CashflowChartProps) {
         {
           label: 'Self-managed',
           data: points.map((p) => p.selfCf),
-          borderColor: '#f59e0b',
+          borderColor: readToken('--calc-chart-self', '#f59e0b'),
           backgroundColor: 'rgba(245,158,11,0.07)',
           tension: 0.15,
           pointRadius: 0,
@@ -31,7 +31,7 @@ export function CashflowChart({ points }: CashflowChartProps) {
         {
           label: 'Break-even',
           data: points.map(() => 0),
-          borderColor: '#ef4444',
+          borderColor: readToken('--calc-chart-breakeven', '#ef4444'),
           borderDash: [5, 4],
           borderWidth: 1.5,
           pointRadius: 0,
@@ -67,7 +67,7 @@ export function WealthChart({ points }: WealthChartProps) {
         {
           label: 'Sell → invest proceeds',
           data: points.map((p) => p.sellWealth),
-          borderColor: '#14b8a6',
+          borderColor: readToken('--calc-chart-sell', '#14b8a6'),
           backgroundColor: 'rgba(20,184,166,0.07)',
           tension: 0.3,
           pointRadius: 2,
@@ -76,7 +76,7 @@ export function WealthChart({ points }: WealthChartProps) {
         {
           label: 'Rent (equity + cash flow)',
           data: points.map((p) => p.rentWealth),
-          borderColor: '#ef4444',
+          borderColor: readToken('--calc-chart-rent', '#ef4444'),
           backgroundColor: 'rgba(239,68,68,0.07)',
           tension: 0.3,
           pointRadius: 2,
@@ -105,6 +105,8 @@ export function WealthChart({ points }: WealthChartProps) {
 export type SensitivityChartProps = { points: readonly SensitivityPoint[] };
 
 export function SensitivityChart({ points }: SensitivityChartProps) {
+  const rentAhead = readToken('--calc-chart-rent-ahead', 'rgba(20,184,166,0.85)');
+  const sellAhead = readToken('--calc-chart-sell-ahead', 'rgba(239,68,68,0.85)');
   const data: ChartData<'bar'> = useMemo(
     () => ({
       labels: points.map((p) => `${p.appRatePct}%`),
@@ -112,14 +114,12 @@ export function SensitivityChart({ points }: SensitivityChartProps) {
         {
           label: 'Rent − Sell at year 10',
           data: points.map((p) => p.rentMinusSellAt10),
-          backgroundColor: points.map((p) =>
-            p.rentMinusSellAt10 >= 0 ? 'rgba(20,184,166,0.85)' : 'rgba(239,68,68,0.85)',
-          ),
+          backgroundColor: points.map((p) => (p.rentMinusSellAt10 >= 0 ? rentAhead : sellAhead)),
           borderRadius: 4,
         },
       ],
     }),
-    [points],
+    [points, rentAhead, sellAhead],
   );
 
   const options: ChartOptions<'bar'> = useMemo(

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart } from '@calc/charts';
+import { BarChart, readToken } from '@calc/charts';
 import type { ChartData, ChartOptions } from 'chart.js';
 
 export type CashChartScenario = { label: string; reserve: number };
@@ -9,9 +9,9 @@ export type CashChartProps = {
 };
 
 function reserveColor(v: number): string {
-  if (v >= 15_000) return '#2d6a4f';
-  if (v >= 0) return '#e76f51';
-  return '#c62828';
+  if (v >= 15_000) return readToken('--calc-chart-reserve-pos', '#2d6a4f');
+  if (v >= 0) return readToken('--calc-chart-reserve-warn', '#e76f51');
+  return readToken('--calc-chart-reserve-neg', '#c62828');
 }
 
 export function CashChart({ scenarios }: CashChartProps) {

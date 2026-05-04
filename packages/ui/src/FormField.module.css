@@ -8,21 +8,21 @@
 .label {
   font-weight: 500;
   font-size: 0.9rem;
-  color: #1f2937;
+  color: var(--calc-color-text);
 }
 
 .hint {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--calc-color-text-subtle);
   margin: 0;
 }
 
 .error {
   font-size: 0.85rem;
-  color: #b91c1c;
+  color: var(--calc-color-error-text);
   margin: 0;
 }
 
 .field[data-invalid='true'] .label {
-  color: #b91c1c;
+  color: var(--calc-color-error-text);
 }
