@@ -112,8 +112,8 @@ export function OlaminaDscrComponent() {
         ))}
       </div>
 
-      <fieldset className={styles.card}>
-        <legend className={styles.cardTitle}>Portfolio</legend>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Portfolio</h2>
         <FormField label="Number of homes" hint={`Range: ${MIN_HOMES}–${MAX_HOMES}`}>
           {({ id, describedBy }) => (
             <NumberInput
@@ -184,11 +184,11 @@ export function OlaminaDscrComponent() {
             );
           })}
         </div>
-      </fieldset>
+      </section>
 
       <div className={styles.paramGrid}>
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Loan Parameters</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Loan Parameters</h2>
           <FormField label="Mortgage rate (%)">
             {({ id, describedBy }) => (
               <PercentInput id={id} aria-describedby={describedBy} value={inputs.ratePct} onChange={setField('ratePct')} />
@@ -209,10 +209,10 @@ export function OlaminaDscrComponent() {
               <NumberInput id={id} aria-describedby={describedBy} value={inputs.termYears} onChange={setField('termYears')} allowDecimal={false} />
             )}
           </FormField>
-        </fieldset>
+        </section>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Costs</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Costs</h2>
           <FormField label="Bulk kit discount (%)">
             {({ id, describedBy }) => (
               <PercentInput id={id} aria-describedby={describedBy} value={inputs.discountPct} onChange={setField('discountPct')} />
@@ -233,10 +233,10 @@ export function OlaminaDscrComponent() {
               <PercentInput id={id} aria-describedby={describedBy} value={inputs.insRatePct} onChange={setField('insRatePct')} />
             )}
           </FormField>
-        </fieldset>
+        </section>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Cash Requirements</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Cash Requirements</h2>
           <FormField label="Reserve months">
             {({ id, describedBy }) => (
               <NumberInput id={id} aria-describedby={describedBy} value={inputs.reserveMonths} onChange={setField('reserveMonths')} allowDecimal={false} />
@@ -252,7 +252,7 @@ export function OlaminaDscrComponent() {
               <CurrencyInput id={id} aria-describedby={describedBy} value={inputs.otherClosing} onChange={setField('otherClosing')} />
             )}
           </FormField>
-        </fieldset>
+        </section>
       </div>
 
       <AriaLive className={styles.results}>

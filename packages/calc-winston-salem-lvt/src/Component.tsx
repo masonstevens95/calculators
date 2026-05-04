@@ -46,8 +46,8 @@ export function WinstonSalemLvtComponent() {
         </p>
       </div>
 
-      <fieldset className={styles.card}>
-        <legend className={styles.cardTitle}>Shift toward LVT</legend>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Shift toward LVT</h2>
         <FormField
           label={`Shift fraction (${shiftPct}% LVT) ${badge}`}
           hint="0% = current uniform practice; 100% = pure land-value tax"
@@ -68,7 +68,7 @@ export function WinstonSalemLvtComponent() {
             />
           )}
         </FormField>
-      </fieldset>
+      </section>
 
       <AriaLive className={styles.results}>
         <h2 className={styles.sectionHeading}>Required Rates</h2>

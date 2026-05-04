@@ -112,8 +112,8 @@ export function LgsDscrComponent() {
         ))}
       </div>
 
-      <fieldset className={styles.card}>
-        <legend className={styles.cardTitle}>Portfolio</legend>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Portfolio</h2>
         <FormField label="Number of homes" hint={`Range: ${MIN_HOMES}–${MAX_HOMES}`}>
           {({ id, describedBy }) => (
             <NumberInput
@@ -166,11 +166,11 @@ export function LgsDscrComponent() {
             );
           })}
         </div>
-      </fieldset>
+      </section>
 
       <div className={styles.paramGrid}>
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Loan Parameters</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Loan Parameters</h2>
           <FormField label="Mortgage rate (%)">
             {({ id, describedBy }) => (
               <PercentInput
@@ -212,10 +212,10 @@ export function LgsDscrComponent() {
               />
             )}
           </FormField>
-        </fieldset>
+        </section>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Costs</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Costs</h2>
           <FormField label="Bulk module discount (%)">
             {({ id, describedBy }) => (
               <PercentInput
@@ -256,10 +256,10 @@ export function LgsDscrComponent() {
               />
             )}
           </FormField>
-        </fieldset>
+        </section>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.cardTitle}>Cash Requirements</legend>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Cash Requirements</h2>
           <FormField label="Reserve months">
             {({ id, describedBy }) => (
               <NumberInput
@@ -291,7 +291,7 @@ export function LgsDscrComponent() {
               />
             )}
           </FormField>
-        </fieldset>
+        </section>
       </div>
 
       <AriaLive className={styles.results}>

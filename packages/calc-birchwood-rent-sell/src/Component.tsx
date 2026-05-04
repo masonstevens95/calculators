@@ -41,8 +41,8 @@ export function BirchwoodRentSellComponent() {
         </p>
       </div>
 
-      <fieldset className={styles.card}>
-        <legend className={styles.cardTitle}>Inputs</legend>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Inputs</h2>
         <div className={styles.inputGrid}>
           <FormField label="Monthly rent">
             {({ id, describedBy }) => (
@@ -103,7 +103,7 @@ export function BirchwoodRentSellComponent() {
             )}
           </FormField>
         </div>
-      </fieldset>
+      </section>
 
       <AriaLive className={styles.results}>
         <h2 className={styles.sectionHeading}>Stats</h2>
