@@ -1,7 +1,7 @@
 ---
 title: 'feat: Declare color-scheme to fix iframe canvas substitution'
 type: feat
-status: active
+status: completed
 date: 2026-05-04
 deepened: 2026-05-04
 ---
