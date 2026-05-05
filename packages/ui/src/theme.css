@@ -93,9 +93,9 @@
 
   --calc-brand-lvt:              light-dark(#2a6f4d, #52b788);
 
-  --calc-brand-birchwood:        light-dark(#be185d, #f472b6);
-  --calc-brand-birchwood-card:   light-dark(#f0fdf4, #052e16);
-  --calc-brand-birchwood-card-border: light-dark(#bbf7d0, #14532d);
+  --calc-brand-rent-sell:        light-dark(#be185d, #f472b6);
+  --calc-brand-rent-sell-card:   light-dark(#f0fdf4, #052e16);
+  --calc-brand-rent-sell-card-border: light-dark(#bbf7d0, #14532d);
 
   /* ===== Chart series + axis =====
    *
@@ -123,7 +123,7 @@
   --calc-chart-reserve-warn:     #e76f51;
   --calc-chart-reserve-neg:      #c62828;
 
-  /* Birchwood (cashflow / wealth / sensitivity) */
+  /* Rent vs Sell (cashflow / wealth / sensitivity) */
   --calc-chart-managed:          #14b8a6;
   --calc-chart-self:             #f59e0b;
   --calc-chart-breakeven:        #ef4444;

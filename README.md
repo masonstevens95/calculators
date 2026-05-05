@@ -31,7 +31,7 @@ and [the brainstorm origin](docs/brainstorms/2026-05-01-calculators-microfronten
 | `olamina-dscr` | `reference/html-originals/olamina-dscr-calculator.html` | no |
 | `eu5-loan` | `reference/html-originals/eu5-loan-calculator.html` | no (numeric table) |
 | `winston-salem-lvt` | `reference/html-originals/lvt-calculator.html` | yes |
-| `birchwood-rent-sell` | `reference/html-originals/Birchwood Rent vs Sell Charts.html` | yes |
+| `rent-sell` | `reference/html-originals/Birchwood Rent vs Sell Charts.html` | yes |
 
 ## Layout
 

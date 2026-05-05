@@ -44,10 +44,17 @@ describe('routes — layout selection per URL', () => {
   it('renders chrome-free for direct visit to /embed/:slug (no parent-context detection)', () => {
     // Use a registered & wired slug — every calc renders chrome-free under
     // /embed regardless of how the visitor arrived (no detection).
-    renderAt('/embed/birchwood-rent-sell');
+    renderAt('/embed/rent-sell');
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: /birchwood rent vs sell/i, level: 1 }),
+      screen.getByRole('heading', { name: /rent vs sell/i, level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it('redirects renamed slugs (birchwood-rent-sell → rent-sell)', () => {
+    renderAt('/embed/birchwood-rent-sell');
+    expect(
+      screen.getByRole('heading', { name: /rent vs sell/i, level: 1 }),
     ).toBeInTheDocument();
   });
 

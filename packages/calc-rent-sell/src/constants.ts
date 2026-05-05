@@ -1,6 +1,7 @@
-// Static Birchwood scenario constants — extracted from
-// reference/html-originals/Birchwood Rent vs Sell Charts.html.
-export const BIRCHWOOD_DEFAULTS = {
+// Default Rent vs Sell scenario constants. Originally extracted from a
+// specific Birchwood property analysis; kept here as illustrative defaults
+// the user tunes via the input form.
+export const RENT_SELL_DEFAULTS = {
   /** Mortgage balance at the analysis epoch. */
   balance: 162_317.07,
   /** Mortgage interest rate (decimal, e.g. 0.0375 = 3.75%). */
@@ -25,4 +26,4 @@ export const BIRCHWOOD_DEFAULTS = {
   managedPct: 9,
 } as const;
 
-export type BirchwoodConstants = typeof BIRCHWOOD_DEFAULTS;
+export type RentSellConstants = typeof RENT_SELL_DEFAULTS;

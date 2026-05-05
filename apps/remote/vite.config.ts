@@ -21,7 +21,7 @@ export default defineConfig({
         './calc/olamina-dscr': 'calc-olamina-dscr',
         './calc/eu5-loan': 'calc-eu5-loan',
         './calc/winston-salem-lvt': 'calc-winston-salem-lvt',
-        './calc/birchwood-rent-sell': 'calc-birchwood-rent-sell',
+        './calc/rent-sell': 'calc-rent-sell',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.0.0' },

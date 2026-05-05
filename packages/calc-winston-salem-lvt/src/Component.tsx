@@ -661,14 +661,14 @@ type RateRowProps = {
 function RateRow({ label, sublabel, value, description }: RateRowProps) {
   return (
     <div className={styles.rateRow}>
-      <div className={styles.rateText}>
-        <dt className={styles.rateLabel}>
+      <dt className={styles.rateLabelRow}>
+        <span className={styles.rateLabel}>
           {label}
           {sublabel ? <span className={styles.rateLabelSub}> ({sublabel})</span> : null}
-        </dt>
-        <dd className={styles.rateDesc}>{description}</dd>
-      </div>
-      <div className={styles.rateValue}>{value}</div>
+        </span>
+        <span className={styles.rateValue}>{value}</span>
+      </dt>
+      <dd className={styles.rateDesc}>{description}</dd>
     </div>
   );
 }

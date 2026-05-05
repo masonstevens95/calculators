@@ -56,5 +56,17 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/calc/birchwood-rent-sell",
+      "destination": "/calc/rent-sell",
+      "permanent": true
+    },
+    {
+      "source": "/embed/birchwood-rent-sell",
+      "destination": "/embed/rent-sell",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/:path*", "destination": "/index.html" }]
 }

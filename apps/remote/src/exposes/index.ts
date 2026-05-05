@@ -14,4 +14,4 @@ export { default as LgsDscr } from 'calc-lgs-dscr';
 export { default as OlaminaDscr } from 'calc-olamina-dscr';
 export { default as Eu5Loan } from 'calc-eu5-loan';
 export { default as WinstonSalemLvt } from 'calc-winston-salem-lvt';
-export { default as BirchwoodRentSell } from 'calc-birchwood-rent-sell';
+export { default as RentSell } from 'calc-rent-sell';

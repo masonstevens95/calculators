@@ -2,14 +2,14 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  computeBirchwood,
+  computeRentSell,
   monthlyCashflow,
   breakEvenRent,
   remainingBalance,
   fixedCarryingCost,
-  validateBirchwoodInputs,
+  validateRentSellInputs,
 } from '../src/domain';
-import { BIRCHWOOD_DEFAULTS } from '../src/constants';
+import { RENT_SELL_DEFAULTS } from '../src/constants';
 
 const DOLLAR = 2;
 
@@ -45,14 +45,14 @@ describe('breakEvenRent', () => {
 
 describe('remainingBalance', () => {
   it('returns the original balance at month 0', () => {
-    expect(remainingBalance(0)).toBe(BIRCHWOOD_DEFAULTS.balance);
+    expect(remainingBalance(0)).toBe(RENT_SELL_DEFAULTS.balance);
   });
 
   it('decreases monotonically', () => {
     const b6 = remainingBalance(6);
     const b12 = remainingBalance(12);
     const b24 = remainingBalance(24);
-    expect(b6).toBeLessThan(BIRCHWOOD_DEFAULTS.balance);
+    expect(b6).toBeLessThan(RENT_SELL_DEFAULTS.balance);
     expect(b12).toBeLessThan(b6);
     expect(b24).toBeLessThan(b12);
   });
@@ -63,7 +63,7 @@ describe('remainingBalance', () => {
   });
 });
 
-describe('computeBirchwood (default scenario)', () => {
+describe('computeRentSell (default scenario)', () => {
   const DEFAULT_INPUT = {
     rent: 2000,
     managed: false,
@@ -73,12 +73,12 @@ describe('computeBirchwood (default scenario)', () => {
   };
 
   it('returns ok with the canonical default input', () => {
-    const r = computeBirchwood(DEFAULT_INPUT);
+    const r = computeRentSell(DEFAULT_INPUT);
     expect(r.ok).toBe(true);
   });
 
   it('cashflow chart spans rent 1200..3200 in $50 steps (41 points)', () => {
-    const r = computeBirchwood(DEFAULT_INPUT);
+    const r = computeRentSell(DEFAULT_INPUT);
     expect(r.ok && r.result.cashflowVsRent).toHaveLength(41);
     if (!r.ok) return;
     expect(r.result.cashflowVsRent[0]!.rent).toBe(1200);
@@ -86,24 +86,24 @@ describe('computeBirchwood (default scenario)', () => {
   });
 
   it('wealth chart spans years 0..10 (11 points)', () => {
-    const r = computeBirchwood(DEFAULT_INPUT);
+    const r = computeRentSell(DEFAULT_INPUT);
     expect(r.ok && r.result.wealthOverTime).toHaveLength(11);
     if (!r.ok) return;
     expect(r.result.wealthOverTime[0]!.year).toBe(0);
     expect(r.result.wealthOverTime[10]!.year).toBe(10);
     // At year 0, sellWealth = netProceeds (no investment growth yet)
-    expect(r.result.wealthOverTime[0]!.sellWealth).toBeCloseTo(BIRCHWOOD_DEFAULTS.netProceeds, DOLLAR);
+    expect(r.result.wealthOverTime[0]!.sellWealth).toBeCloseTo(RENT_SELL_DEFAULTS.netProceeds, DOLLAR);
   });
 
   it('sensitivity sweep covers 0%..7% appreciation (8 points)', () => {
-    const r = computeBirchwood(DEFAULT_INPUT);
+    const r = computeRentSell(DEFAULT_INPUT);
     expect(r.ok && r.result.sensitivity).toHaveLength(8);
     if (!r.ok) return;
     expect(r.result.sensitivity.map((s) => s.appRatePct)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
   });
 
   it('sensitivity is monotone increasing in appRate (higher appreciation favors renting)', () => {
-    const r = computeBirchwood(DEFAULT_INPUT);
+    const r = computeRentSell(DEFAULT_INPUT);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     const deltas = r.result.sensitivity.map((s) => s.rentMinusSellAt10);
@@ -113,7 +113,7 @@ describe('computeBirchwood (default scenario)', () => {
   });
 
   it('rentBeatsSellAt10 reflects rentVsSellAt10Delta sign', () => {
-    const r = computeBirchwood(DEFAULT_INPUT);
+    const r = computeRentSell(DEFAULT_INPUT);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.result.rentBeatsSellAt10).toBe(r.result.rentVsSellAt10Delta > 0);
@@ -122,7 +122,7 @@ describe('computeBirchwood (default scenario)', () => {
 
 describe('Section 121 timeline', () => {
   it('safe when moveout is 4+ years out (yearsLeft > 2)', () => {
-    const r = computeBirchwood({
+    const r = computeRentSell({
       rent: 2000,
       managed: false,
       appRate: 0.02,
@@ -137,7 +137,7 @@ describe('Section 121 timeline', () => {
 
   it('critical when yearsLeft ≤ 1', () => {
     // moveout 2024 → deadline 2027 → yearsLeft = 2027 - 2026 = 1 → critical
-    const r = computeBirchwood({
+    const r = computeRentSell({
       rent: 2000,
       managed: false,
       appRate: 0.02,
@@ -151,7 +151,7 @@ describe('Section 121 timeline', () => {
 
   it('warning when yearsLeft is 2', () => {
     // moveout 2025 → deadline 2028 → yearsLeft = 2 → warning
-    const r = computeBirchwood({
+    const r = computeRentSell({
       rent: 2000,
       managed: false,
       appRate: 0.02,
@@ -164,10 +164,10 @@ describe('Section 121 timeline', () => {
   });
 });
 
-describe('validateBirchwoodInputs', () => {
+describe('validateRentSellInputs', () => {
   it('accepts default canonical input', () => {
     expect(
-      validateBirchwoodInputs({
+      validateRentSellInputs({
         rent: 2000,
         managed: false,
         appRate: 0.02,
@@ -179,7 +179,7 @@ describe('validateBirchwoodInputs', () => {
 
   it('rejects negative rent', () => {
     expect(
-      validateBirchwoodInputs({
+      validateRentSellInputs({
         rent: -100,
         managed: false,
         appRate: 0.02,
@@ -191,7 +191,7 @@ describe('validateBirchwoodInputs', () => {
 
   it('rejects NaN appRate', () => {
     expect(
-      validateBirchwoodInputs({
+      validateRentSellInputs({
         rent: 2000,
         managed: false,
         appRate: Number.NaN,

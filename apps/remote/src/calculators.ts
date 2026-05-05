@@ -8,7 +8,7 @@ import LgsDscr from 'calc-lgs-dscr';
 import OlaminaDscr from 'calc-olamina-dscr';
 import Eu5Loan from 'calc-eu5-loan';
 import WinstonSalemLvt from 'calc-winston-salem-lvt';
-import BirchwoodRentSell from 'calc-birchwood-rent-sell';
+import RentSell from 'calc-rent-sell';
 
 export type CalcDescriptor = {
   slug: string;
@@ -51,10 +51,10 @@ export const calculators: readonly CalcDescriptor[] = [
     Component: WinstonSalemLvt,
   },
   {
-    slug: 'birchwood-rent-sell',
-    title: 'Birchwood Rent vs Sell',
+    slug: 'rent-sell',
+    title: 'Rent vs Sell',
     blurb: 'Rent-vs-sell scenario analysis with charted comparisons over time.',
-    Component: BirchwoodRentSell,
+    Component: RentSell,
   },
 ] as const;
 

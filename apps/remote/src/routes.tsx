@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import { AppLayout } from './layouts/AppLayout';
 import { EmbedLayout } from './layouts/EmbedLayout';
 import { HomePage } from './pages/HomePage';
@@ -6,11 +6,23 @@ import { CalcPagePlaceholder } from './pages/CalcPagePlaceholder';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { findCalculator } from './calculators';
 
+// Slug renames keep old URLs alive after a calc rebrand. Vercel handles
+// these as 308 redirects on full-page hits (vercel.json); this map handles
+// the same paths during in-app SPA navigation.
+const SLUG_REDIRECTS: Readonly<Record<string, string>> = {
+  'birchwood-rent-sell': 'rent-sell',
+};
+
 // Wraps the placeholder render with an unknown-slug check so route resolution
 // always lands on NotFoundPage for slugs that aren't in the registry — this
 // applies under both AppLayout and EmbedLayout.
 function CalcOrNotFound() {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  if (slug && SLUG_REDIRECTS[slug]) {
+    const next = location.pathname.replace(`/${slug}`, `/${SLUG_REDIRECTS[slug]}`);
+    return <Navigate to={next + location.search + location.hash} replace />;
+  }
   if (!findCalculator(slug)) {
     return <NotFoundPage />;
   }
