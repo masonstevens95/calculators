@@ -104,9 +104,12 @@ export function WinstonSalemLvtComponent() {
   const badge =
     inputs.shift <= 0 ? '(current practice)' : inputs.shift >= 0.999 ? '(pure LVT)' : '(split-rate)';
 
-  // Sum of positive deltas across the 7 sample parcels — what the new bigger
-  // payers contribute extra. Sample-based estimate, not city-wide totals.
-  const burdenShifted = sampleBills.reduce((sum, b) => sum + Math.max(0, b.delta), 0);
+  // Citywide revenue moved from improvement-heavy parcels to land-heavy ones.
+  // Equals the building-tax revenue no longer collected (= s × baseRate × I),
+  // which by revenue-neutrality equals the extra land-tax revenue
+  // (= (landRate − baseRate) × L). Computed from the rates so the relationship
+  // to the published WS_BASE figures stays visible.
+  const cityWideShift = (rates.landRate - WS_BASE.rate) * WS_BASE.L;
   const myDelta = myBill?.delta ?? 0;
   const mySubline = !myBill
     ? 'enter values'
@@ -125,7 +128,7 @@ export function WinstonSalemLvtComponent() {
         </h1>
         <p className={styles.subtitle}>
           A <strong>Land Value Tax (LVT)</strong> taxes land at a higher rate than the buildings on
-          it — leaving today's property-tax revenue untouched, but shifting <em>who</em> pays. The
+          it — leaving today&apos;s property-tax revenue untouched, but shifting <em>who</em> pays. The
           case for it: vacant lots and surface parking start paying their share, productive use of
           land is rewarded, and (advocates argue) housing supply, redevelopment, and downtown
           vibrancy improve over time. This calculator shows how the trade-off lands across
@@ -172,11 +175,11 @@ export function WinstonSalemLvtComponent() {
           panelId="lvt-panel-classes"
           label="Parcel types"
           value={
-            burdenShifted > 0
-              ? `${formatCurrency(burdenShifted, { maximumFractionDigits: 0 })} shifts`
+            cityWideShift > 0
+              ? `${formatCurrency(cityWideShift, { maximumFractionDigits: 0 })} shifts`
               : '—'
           }
-          subline="across parcel types"
+          subline="from buildings to land, citywide"
           active={tab === 'classes'}
           onSelect={() => setTab('classes')}
         />
@@ -261,6 +264,19 @@ export function WinstonSalemLvtComponent() {
           hidden={tab !== 'classes'}
           className={styles.tabPanel}
         >
+          <p className={styles.sectionIntro}>
+            At {shiftPct}% shift,{' '}
+            <strong>
+              {cityWideShift > 0
+                ? formatCurrency(cityWideShift, { maximumFractionDigits: 0 })
+                : '$0'}
+            </strong>{' '}
+            of citywide property tax moves from buildings to land — that&apos;s the building-tax revenue
+            the city no longer collects, picked up instead from the same land base. The seven
+            archetypes below show <em>which kinds</em> of parcels feel that shift in either
+            direction.
+          </p>
+
           <h2 className={styles.sectionHeading}>Sample Parcels</h2>
           <div className={styles.scrollX}>
             <table className={styles.parcelTable}>
@@ -380,7 +396,7 @@ export function WinstonSalemLvtComponent() {
             <strong>{formatCurrency(raise.ratesScaled.target, { maximumFractionDigits: 0 })}</strong>
             {raise.extra > 0 ? (
               <>
-                {' '}— that's{' '}
+                {' '}— that&apos;s{' '}
                 <strong>+{formatCurrency(raise.extra, { maximumFractionDigits: 0 })}</strong> above
                 today.
               </>
