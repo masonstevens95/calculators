@@ -13,7 +13,7 @@ export default mergeConfig(
   defineConfig({
     plugins: [react()],
     test: {
-      name: 'calc-surry-county-offer',
+      name: 'calc-rural-land-offer',
       // Default environment for files without a `// @vitest-environment` header.
       environment: 'jsdom',
       setupFiles: ['./tests/setup.ts'],

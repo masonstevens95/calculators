@@ -12,7 +12,7 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: var(--calc-brand-birchwood);
+  color: var(--calc-brand-rent-sell);
 }
 
 .subtitle {
@@ -32,7 +32,7 @@
 .cardTitle {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--calc-brand-birchwood);
+  color: var(--calc-brand-rent-sell);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 0 0.25rem;

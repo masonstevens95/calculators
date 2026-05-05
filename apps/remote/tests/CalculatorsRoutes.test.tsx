@@ -17,14 +17,14 @@ describe('<CalculatorsRoutes /> — federated-host integration shape', () => {
   it('composes inside host <Routes> without throwing the "<Router> inside <Router>" error', () => {
     // The host might also nest us via its own <Routes>; we should still resolve.
     render(
-      <MemoryRouter initialEntries={['/calc/surry-county-offer']}>
+      <MemoryRouter initialEntries={['/calc/rural-land-offer']}>
         <Routes>
           <Route path="/*" element={<CalculatorsRoutes />} />
         </Routes>
       </MemoryRouter>,
     );
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
   });
 });

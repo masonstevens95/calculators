@@ -8,7 +8,7 @@ import {
   SensitivityChart,
 } from '../../src/charts/RentVsSellCharts';
 
-describe('Birchwood charts smoke', () => {
+describe('Rent vs Sell charts smoke', () => {
   it('CashflowChart mounts', () => {
     render(
       <CashflowChart

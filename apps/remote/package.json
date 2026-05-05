@@ -18,11 +18,11 @@
   "dependencies": {
     "@calc/ui": "workspace:*",
     "@module-federation/vite": "^1.15.1",
-    "calc-birchwood-rent-sell": "workspace:*",
     "calc-eu5-loan": "workspace:*",
     "calc-lgs-dscr": "workspace:*",
     "calc-olamina-dscr": "workspace:*",
-    "calc-surry-county-offer": "workspace:*",
+    "calc-rent-sell": "workspace:*",
+    "calc-rural-land-offer": "workspace:*",
     "calc-winston-salem-lvt": "workspace:*",
     "react-router-dom": "^7.1.0"
   },

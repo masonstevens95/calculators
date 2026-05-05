@@ -20,12 +20,12 @@ const EXPECTED_EXPOSES = [
   './CalculatorsApp',
   './CalculatorsRoutes',
   './CalculatorsLoadError',
-  './calc/surry-county-offer',
+  './calc/rural-land-offer',
   './calc/lgs-dscr',
   './calc/olamina-dscr',
   './calc/eu5-loan',
   './calc/winston-salem-lvt',
-  './calc/birchwood-rent-sell',
+  './calc/rent-sell',
 ];
 
 const SHARED_REACT_KEYS = ['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client'];

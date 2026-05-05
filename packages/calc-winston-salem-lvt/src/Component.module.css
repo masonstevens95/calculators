@@ -71,22 +71,21 @@
 }
 
 .rateRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
-  gap: 1rem;
   padding: 0.75rem 1rem;
   background: var(--calc-color-surface-raised);
   border: 1px solid var(--calc-color-border);
   border-radius: 0.5rem;
 }
 
-.rateText {
-  min-width: 0;
+.rateLabelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 0 0 0.25rem;
 }
 
 .rateLabel {
-  margin: 0 0 0.25rem;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--calc-color-text-emphasis);
@@ -111,7 +110,6 @@
   font-variant-numeric: tabular-nums;
   color: var(--calc-brand-lvt);
   white-space: nowrap;
-  padding-top: 0.1rem;
 }
 
 .scrollX {

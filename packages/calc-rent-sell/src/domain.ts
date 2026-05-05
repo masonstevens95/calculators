@@ -1,9 +1,9 @@
-// Pure domain for the Birchwood Rent vs Sell calculator.
+// Pure domain for the Rent vs Sell calculator.
 
-import { BIRCHWOOD_DEFAULTS } from './constants';
-import type { BirchwoodConstants } from './constants';
+import { RENT_SELL_DEFAULTS } from './constants';
+import type { RentSellConstants } from './constants';
 
-export type BirchwoodInputs = {
+export type RentSellInputs = {
   /** Monthly rent in dollars. */
   rent: number;
   /** Property-management mode. */
@@ -29,7 +29,7 @@ export type Section121 = {
   message: string;
 };
 
-export type BirchwoodOutput = {
+export type RentSellOutput = {
   fixedCarrying: number;
   monthlyCashflow: number;
   breakEvenRent: number;
@@ -41,11 +41,11 @@ export type BirchwoodOutput = {
   section121: Section121;
 };
 
-export type ComputeBirchwoodResult =
-  | { ok: true; result: BirchwoodOutput }
-  | { ok: false; errors: Partial<Record<keyof BirchwoodInputs, string>> };
+export type ComputeRentSellResult =
+  | { ok: true; result: RentSellOutput }
+  | { ok: false; errors: Partial<Record<keyof RentSellInputs, string>> };
 
-export function fixedCarryingCost(c: BirchwoodConstants = BIRCHWOOD_DEFAULTS): number {
+export function fixedCarryingCost(c: RentSellConstants = RENT_SELL_DEFAULTS): number {
   return c.monthlyPI + c.taxes + c.insurance + c.maintenance;
 }
 
@@ -53,7 +53,7 @@ export function fixedCarryingCost(c: BirchwoodConstants = BIRCHWOOD_DEFAULTS): n
 export function monthlyCashflow(
   rent: number,
   managed: boolean,
-  c: BirchwoodConstants = BIRCHWOOD_DEFAULTS,
+  c: RentSellConstants = RENT_SELL_DEFAULTS,
 ): number {
   const mgmt = managed ? (c.managedPct / 100) * rent : 0;
   const vacancy = (c.vacancyPct / 100) * rent;
@@ -63,7 +63,7 @@ export function monthlyCashflow(
 /** Break-even rent (cashflow = 0) given the management mode. */
 export function breakEvenRent(
   managed: boolean,
-  c: BirchwoodConstants = BIRCHWOOD_DEFAULTS,
+  c: RentSellConstants = RENT_SELL_DEFAULTS,
 ): number {
   const retainedRate = managed
     ? 1 - c.managedPct / 100 - c.vacancyPct / 100
@@ -74,7 +74,7 @@ export function breakEvenRent(
 /** Remaining mortgage balance after `months` of standard amortization. */
 export function remainingBalance(
   months: number,
-  c: BirchwoodConstants = BIRCHWOOD_DEFAULTS,
+  c: RentSellConstants = RENT_SELL_DEFAULTS,
 ): number {
   if (months <= 0) return c.balance;
   let balance = c.balance;
@@ -87,17 +87,17 @@ export function remainingBalance(
   return Math.max(0, balance);
 }
 
-const NUMERIC_FIELDS: readonly (keyof BirchwoodInputs)[] = [
+const NUMERIC_FIELDS: readonly (keyof RentSellInputs)[] = [
   'rent',
   'appRate',
   'invRate',
   'moveoutYear',
 ];
 
-export function validateBirchwoodInputs(
-  inputs: BirchwoodInputs,
-): Partial<Record<keyof BirchwoodInputs, string>> {
-  const errors: Partial<Record<keyof BirchwoodInputs, string>> = {};
+export function validateRentSellInputs(
+  inputs: RentSellInputs,
+): Partial<Record<keyof RentSellInputs, string>> {
+  const errors: Partial<Record<keyof RentSellInputs, string>> = {};
   for (const field of NUMERIC_FIELDS) {
     const value = inputs[field];
     if (typeof value !== 'number' || !Number.isFinite(value)) {
@@ -113,7 +113,7 @@ export function validateBirchwoodInputs(
 
 function computeSection121(
   moveoutYear: number,
-  c: BirchwoodConstants = BIRCHWOOD_DEFAULTS,
+  c: RentSellConstants = RENT_SELL_DEFAULTS,
 ): Section121 {
   const deadlineYear = moveoutYear + 3;
   const yearsLeft = deadlineYear - c.currentYear;
@@ -135,11 +135,11 @@ function computeSection121(
   return { moveoutYear, deadlineYear, yearsLeft, progressPct, urgency, message };
 }
 
-export function computeBirchwood(
-  inputs: BirchwoodInputs,
-  c: BirchwoodConstants = BIRCHWOOD_DEFAULTS,
-): ComputeBirchwoodResult {
-  const errors = validateBirchwoodInputs(inputs);
+export function computeRentSell(
+  inputs: RentSellInputs,
+  c: RentSellConstants = RENT_SELL_DEFAULTS,
+): ComputeRentSellResult {
+  const errors = validateRentSellInputs(inputs);
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }

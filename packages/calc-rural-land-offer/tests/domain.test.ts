@@ -36,7 +36,7 @@ describe('monthlyPayment', () => {
 });
 
 describe('netProceedsCalc', () => {
-  it('matches the HTML default: $97,400 for the canonical Birchwood sale', () => {
+  it('matches the HTML default: $97,400 for the canonical sale fixture', () => {
     expect(netProceedsCalc(280_000, 163_000, 6, 1)).toBeCloseTo(97_400, CURRENCY_EPSILON);
   });
 

@@ -75,11 +75,11 @@
   --calc-color-skiplink-text:   light-dark(#ffffff, #0f172a);
 
   /* ===== Brand accents (per-calc heading + accent colors) ===== */
-  --calc-brand-surry:            light-dark(#2d6a4f, #52b788);
-  --calc-brand-surry-mid:        light-dark(#52b788, #86efac);
-  --calc-brand-surry-pale-line:  light-dark(#d8f3dc, #166534);
-  --calc-brand-surry-hl-bg:      light-dark(#edf7f0, #14532d);
-  --calc-brand-surry-custom-bg:  light-dark(#eef2fc, #312e81);
+  --calc-brand-rural:            light-dark(#2d6a4f, #52b788);
+  --calc-brand-rural-mid:        light-dark(#52b788, #86efac);
+  --calc-brand-rural-pale-line:  light-dark(#d8f3dc, #166534);
+  --calc-brand-rural-hl-bg:      light-dark(#edf7f0, #14532d);
+  --calc-brand-rural-custom-bg:  light-dark(#eef2fc, #312e81);
 
   --calc-brand-lgs:              light-dark(#1f2937, #f1f5f9);
 
@@ -93,9 +93,9 @@
 
   --calc-brand-lvt:              light-dark(#2a6f4d, #52b788);
 
-  --calc-brand-birchwood:        light-dark(#be185d, #f472b6);
-  --calc-brand-birchwood-card:   light-dark(#f0fdf4, #052e16);
-  --calc-brand-birchwood-card-border: light-dark(#bbf7d0, #14532d);
+  --calc-brand-rent-sell:        light-dark(#be185d, #f472b6);
+  --calc-brand-rent-sell-card:   light-dark(#f0fdf4, #052e16);
+  --calc-brand-rent-sell-card-border: light-dark(#bbf7d0, #14532d);
 
   /* ===== Chart series + axis =====
    *
@@ -123,7 +123,7 @@
   --calc-chart-reserve-warn:     #e76f51;
   --calc-chart-reserve-neg:      #c62828;
 
-  /* Birchwood (cashflow / wealth / sensitivity) */
+  /* Rent vs Sell (cashflow / wealth / sensitivity) */
   --calc-chart-managed:          #14b8a6;
   --calc-chart-self:             #f59e0b;
   --calc-chart-breakeven:        #ef4444;

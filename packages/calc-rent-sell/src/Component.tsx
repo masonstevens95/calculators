@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { AriaLive, FormField, NumberInput, ResultDisplay } from '@calc/ui';
 import { formatCurrency } from '@calc/domain-utils';
-import { computeBirchwood } from './domain';
-import type { BirchwoodInputs } from './domain';
+import { computeRentSell } from './domain';
+import type { RentSellInputs } from './domain';
 import { CashflowChart, WealthChart, SensitivityChart } from './charts/RentVsSellCharts';
 import styles from './Component.module.css';
 
-const DEFAULT_INPUTS: BirchwoodInputs = {
+const DEFAULT_INPUTS: RentSellInputs = {
   rent: 2000,
   managed: false,
   appRate: 0.02,
@@ -14,15 +14,15 @@ const DEFAULT_INPUTS: BirchwoodInputs = {
   moveoutYear: 2026,
 };
 
-export function BirchwoodRentSellComponent() {
-  const [inputs, setInputs] = useState<BirchwoodInputs>(DEFAULT_INPUTS);
+export function RentSellComponent() {
+  const [inputs, setInputs] = useState<RentSellInputs>(DEFAULT_INPUTS);
 
-  const computation = useMemo(() => computeBirchwood(inputs), [inputs]);
+  const computation = useMemo(() => computeRentSell(inputs), [inputs]);
 
   if (!computation.ok) {
     return (
       <section className={styles.layout}>
-        <h1>Birchwood Rent vs Sell</h1>
+        <h1>Rent vs Sell</h1>
         <p role="alert">Some inputs are invalid. Adjust and try again.</p>
       </section>
     );
@@ -31,13 +31,16 @@ export function BirchwoodRentSellComponent() {
   const r = computation.result;
 
   return (
-    <section className={styles.layout} aria-labelledby="birch-heading">
+    <section className={styles.layout} aria-labelledby="rent-sell-heading">
       <div className={styles.header}>
-        <h1 id="birch-heading" className={styles.heading}>
-          Birchwood Rent vs Sell
+        <h1 id="rent-sell-heading" className={styles.heading}>
+          Rent vs Sell
         </h1>
         <p className={styles.subtitle}>
-          Decide whether to rent the house out or sell it now and invest the proceeds.
+          You own a home you no longer plan to live in. Should you rent it out for the long-term
+          cash flow and equity growth, or sell now and invest the proceeds? Tune the inputs to
+          your property and the calculator compares both paths over a 10-year horizon — including
+          the IRS Section 121 capital-gains exclusion deadline.
         </p>
       </div>
 
@@ -166,4 +169,4 @@ export function BirchwoodRentSellComponent() {
   );
 }
 
-export default BirchwoodRentSellComponent;
+export default RentSellComponent;

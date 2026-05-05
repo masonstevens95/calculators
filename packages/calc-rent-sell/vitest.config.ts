@@ -7,7 +7,7 @@ export default mergeConfig(
   defineConfig({
     plugins: [react()],
     test: {
-      name: 'calc-birchwood-rent-sell',
+      name: 'calc-rent-sell',
       environment: 'jsdom',
       setupFiles: ['./tests/setup.ts'],
       include: ['tests/**/*.test.{ts,tsx}'],

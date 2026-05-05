@@ -3,12 +3,12 @@
 // and HomePage discovery — no hardcoding scattered across components.
 
 import type { ComponentType, LazyExoticComponent } from 'react';
-import SurryCountyOffer from 'calc-surry-county-offer';
+import RuralLandOffer from 'calc-rural-land-offer';
 import LgsDscr from 'calc-lgs-dscr';
 import OlaminaDscr from 'calc-olamina-dscr';
 import Eu5Loan from 'calc-eu5-loan';
 import WinstonSalemLvt from 'calc-winston-salem-lvt';
-import BirchwoodRentSell from 'calc-birchwood-rent-sell';
+import RentSell from 'calc-rent-sell';
 
 export type CalcDescriptor = {
   slug: string;
@@ -21,10 +21,10 @@ export type CalcDescriptor = {
 // U2 lands the slugs as placeholders; U4–U9 wire the real components.
 export const calculators: readonly CalcDescriptor[] = [
   {
-    slug: 'surry-county-offer',
-    title: 'Surry County Offer',
-    blurb: 'Estimate offer terms for a Surry County purchase, with PITI and cash-flow charts.',
-    Component: SurryCountyOffer,
+    slug: 'rural-land-offer',
+    title: 'Rural Land Offer',
+    blurb: 'Estimate offer terms for a rural property purchase, with PITI and cash-flow charts.',
+    Component: RuralLandOffer,
   },
   {
     slug: 'lgs-dscr',
@@ -51,10 +51,10 @@ export const calculators: readonly CalcDescriptor[] = [
     Component: WinstonSalemLvt,
   },
   {
-    slug: 'birchwood-rent-sell',
-    title: 'Birchwood Rent vs Sell',
+    slug: 'rent-sell',
+    title: 'Rent vs Sell',
     blurb: 'Rent-vs-sell scenario analysis with charted comparisons over time.',
-    Component: BirchwoodRentSell,
+    Component: RentSell,
   },
 ] as const;
 

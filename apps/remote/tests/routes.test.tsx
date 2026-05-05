@@ -19,35 +19,42 @@ describe('routes — layout selection per URL', () => {
     expect(screen.getByRole('heading', { name: /calculators/i })).toBeInTheDocument();
   });
 
-  it('renders the wired calc under AppLayout for "/calc/:slug" (Surry County)', () => {
-    renderAt('/calc/surry-county-offer');
+  it('renders the wired calc under AppLayout for "/calc/:slug" (Rural Land Offer)', () => {
+    renderAt('/calc/rural-land-offer');
     // Chrome present: AppLayout banner + contentinfo
     expect(screen.getByRole('banner')).toBeInTheDocument();
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
-    // Real Surry County calc heading rendered
+    // Real calc heading rendered
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
   });
 
   it('renders the wired calc under EmbedLayout for "/embed/:slug" (chrome-free)', () => {
-    renderAt('/embed/surry-county-offer');
+    renderAt('/embed/rural-land-offer');
     // Chrome absent: no AppLayout banner / contentinfo
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
     // Calc itself still rendered
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
   });
 
   it('renders chrome-free for direct visit to /embed/:slug (no parent-context detection)', () => {
     // Use a registered & wired slug — every calc renders chrome-free under
     // /embed regardless of how the visitor arrived (no detection).
-    renderAt('/embed/birchwood-rent-sell');
+    renderAt('/embed/rent-sell');
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: /birchwood rent vs sell/i, level: 1 }),
+      screen.getByRole('heading', { name: /rent vs sell/i, level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it('redirects renamed slugs (birchwood-rent-sell → rent-sell)', () => {
+    renderAt('/embed/birchwood-rent-sell');
+    expect(
+      screen.getByRole('heading', { name: /rent vs sell/i, level: 1 }),
     ).toBeInTheDocument();
   });
 
