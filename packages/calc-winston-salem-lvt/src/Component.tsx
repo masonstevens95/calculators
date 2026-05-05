@@ -3,7 +3,7 @@ import { AriaLive, CurrencyInput, FormField, ResultDisplay } from '@calc/ui';
 import { formatCurrency, formatNumber, formatPercent } from '@calc/domain-utils';
 import { computeLvt, computeParcelBill, computeRates } from './domain';
 import type { LvtInputs, ParcelBill } from './domain';
-import { SAMPLE_PARCELS, WS_BASE, WS_POPULATION } from './parcels';
+import { SAMPLE_PARCELS, WS_BASE, WS_HOUSEHOLDS, WS_POPULATION } from './parcels';
 import { ParcelComparisonChart } from './charts/ParcelComparisonChart';
 import styles from './Component.module.css';
 
@@ -13,6 +13,47 @@ const DEFAULT_INPUTS: LvtInputs = {
 };
 
 type TabId = 'city' | 'classes' | 'you' | 'raise';
+
+type RevenueUse = 'dividend' | 'rebate' | 'teachers' | 'transit' | 'housing';
+
+const REVENUE_USES: ReadonlyArray<{ id: RevenueUse; label: string; description: string }> = [
+  {
+    id: 'dividend',
+    label: "Citizens' dividend",
+    description: 'Split equally among W-S residents as a per-person cash payment.',
+  },
+  {
+    id: 'rebate',
+    label: 'Property-tax rebate',
+    description: 'Returned to existing property owners as a per-household discount.',
+  },
+  {
+    id: 'teachers',
+    label: 'Hire teachers',
+    description: 'Funds additional teachers in the W-S/Forsyth district.',
+  },
+  {
+    id: 'transit',
+    label: 'Expand transit',
+    description: 'Pays for additional bus service hours on existing or new routes.',
+  },
+  {
+    id: 'housing',
+    label: 'Build affordable housing',
+    description: 'Closes the subsidy gap on additional below-market units.',
+  },
+];
+
+// Rough per-unit cost assumptions for the "what could it fund" framing.
+// Deliberately kept ballpark — the panel labels these as illustrative.
+const UNIT_COSTS = {
+  /** Loaded teacher salary (median NC base ~$54k + benefits). */
+  teacher: 70_000,
+  /** Annual fixed-route bus service hour, FTA-style operating cost. */
+  busHour: 100,
+  /** Per-unit subsidy gap typical of LIHTC affordable-housing financing. */
+  housingUnit: 100_000,
+} as const;
 
 function fmtRate(r: number): string {
   return `$${(r * 100).toFixed(4)}/$100`;
@@ -28,7 +69,7 @@ export function WinstonSalemLvtComponent() {
   const [inputs, setInputs] = useState<LvtInputs>(DEFAULT_INPUTS);
   const [tab, setTab] = useState<TabId>('city');
   const [revenueScale, setRevenueScale] = useState<number>(1);
-  const [showDividend, setShowDividend] = useState<boolean>(false);
+  const [revenueUse, setRevenueUse] = useState<RevenueUse>('dividend');
 
   const computation = useMemo(() => computeLvt(inputs), [inputs]);
 
@@ -403,43 +444,47 @@ export function WinstonSalemLvtComponent() {
             </table>
           </div>
 
-          <div className={styles.dividendRow}>
-            <label className={styles.dividendToggle}>
-              <input
-                type="checkbox"
-                checked={showDividend}
-                onChange={(e) => setShowDividend(e.target.checked)}
-              />
-              <span>
-                Return the extra revenue as a <strong>citizens' dividend</strong>
-              </span>
-            </label>
-            <p className={styles.dividendHint}>
-              A specific Georgist policy proposal: split the new land-tax revenue equally among
-              residents. Not automatic — included so you can see the trade.
-            </p>
-          </div>
-
-          {showDividend ? (
-            <div className={styles.myBill}>
-              <ResultDisplay
-                label={`Per-resident dividend (W-S pop. ${formatNumber(WS_POPULATION, { fractionDigits: 0 })})`}
-                value={formatCurrency(raise.dividend, { maximumFractionDigits: 0 })}
-                emphasis="primary"
-              />
-              {raise.myScaled && inputs.myParcel ? (
-                <ResultDisplay
-                  label="Your net (extra paid − your dividend)"
-                  value={fmtSignedCurrency(
-                    raise.myScaled.next -
-                      computeParcelBill(inputs.myParcel, computeRates(inputs.shift, WS_BASE, 1), WS_BASE.rate)
-                        .next -
-                      raise.dividend,
-                  )}
+          <h3 className={styles.sectionHeading}>
+            What could {raise.extra > 0 ? formatCurrency(raise.extra, { maximumFractionDigits: 0 }) : 'this revenue'} fund?
+          </h3>
+          <fieldset className={styles.useFieldset}>
+            <legend className={styles.visuallyHidden}>How the extra revenue could be used</legend>
+            {REVENUE_USES.map((use) => (
+              <label
+                key={use.id}
+                className={`${styles.useOption} ${revenueUse === use.id ? styles.useOptionActive : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="revenue-use"
+                  value={use.id}
+                  checked={revenueUse === use.id}
+                  onChange={() => setRevenueUse(use.id)}
                 />
-              ) : null}
-            </div>
-          ) : null}
+                <span className={styles.useOptionLabel}>{use.label}</span>
+                <span className={styles.useOptionDesc}>{use.description}</span>
+              </label>
+            ))}
+          </fieldset>
+
+          <RevenueUseCard
+            use={revenueUse}
+            extra={raise.extra}
+            myExtra={
+              raise.myScaled && inputs.myParcel
+                ? raise.myScaled.next -
+                  computeParcelBill(
+                    inputs.myParcel,
+                    computeRates(inputs.shift, WS_BASE, 1),
+                    WS_BASE.rate,
+                  ).next
+                : null
+            }
+          />
+          <p className={styles.useFootnote}>
+            Per-unit costs are rough illustrations, not budget-grade estimates. Actual figures
+            depend on contracts, salaries, and project mix in any given year.
+          </p>
 
           <p className={styles.tieBack}>
             This tab leaves revenue-neutrality. The other three tabs assume the city collects the
@@ -481,6 +526,113 @@ function TabCard({ id, panelId, label, value, subline, active, onSelect }: TabCa
       <span className={styles.tabSubline}>{subline}</span>
     </button>
   );
+}
+
+type RevenueUseCardProps = {
+  use: RevenueUse;
+  extra: number;
+  /** Extra dollars this user's parcel pays at the current scale, or null. */
+  myExtra: number | null;
+};
+
+function RevenueUseCard({ use, extra, myExtra }: RevenueUseCardProps) {
+  if (extra <= 0) {
+    return (
+      <div className={styles.myBill}>
+        <ResultDisplay
+          label="Drag the multiplier above 1.00× to see funding scenarios"
+          value="—"
+        />
+      </div>
+    );
+  }
+
+  switch (use) {
+    case 'dividend': {
+      const perPerson = extra / WS_POPULATION;
+      return (
+        <div className={styles.myBill}>
+          <ResultDisplay
+            label={`Per-resident dividend (W-S pop. ${formatNumber(WS_POPULATION, { fractionDigits: 0 })})`}
+            value={formatCurrency(perPerson, { maximumFractionDigits: 0 })}
+            emphasis="primary"
+          />
+          {myExtra !== null ? (
+            <ResultDisplay
+              label="Your net (extra paid − your dividend)"
+              value={fmtSignedCurrency(myExtra - perPerson)}
+            />
+          ) : null}
+        </div>
+      );
+    }
+    case 'rebate': {
+      const perHousehold = extra / WS_HOUSEHOLDS;
+      return (
+        <div className={styles.myBill}>
+          <ResultDisplay
+            label={`Per-household rebate (${formatNumber(WS_HOUSEHOLDS, { fractionDigits: 0 })} households)`}
+            value={formatCurrency(perHousehold, { maximumFractionDigits: 0 })}
+            emphasis="primary"
+          />
+          {myExtra !== null ? (
+            <ResultDisplay
+              label="Your net (extra paid − your rebate)"
+              value={fmtSignedCurrency(myExtra - perHousehold)}
+            />
+          ) : null}
+        </div>
+      );
+    }
+    case 'teachers': {
+      const teachers = Math.floor(extra / UNIT_COSTS.teacher);
+      return (
+        <div className={styles.myBill}>
+          <ResultDisplay
+            label="Additional teachers funded for one year"
+            value={`≈ ${formatNumber(teachers, { fractionDigits: 0 })}`}
+            emphasis="primary"
+          />
+          <ResultDisplay
+            label="Assumed loaded salary"
+            value={formatCurrency(UNIT_COSTS.teacher, { maximumFractionDigits: 0 })}
+          />
+        </div>
+      );
+    }
+    case 'transit': {
+      const hours = Math.floor(extra / UNIT_COSTS.busHour);
+      return (
+        <div className={styles.myBill}>
+          <ResultDisplay
+            label="Annual bus service hours funded"
+            value={`≈ ${formatNumber(hours, { fractionDigits: 0 })}`}
+            emphasis="primary"
+          />
+          <ResultDisplay
+            label="Assumed cost per service hour"
+            value={formatCurrency(UNIT_COSTS.busHour, { maximumFractionDigits: 0 })}
+          />
+        </div>
+      );
+    }
+    case 'housing': {
+      const units = Math.floor(extra / UNIT_COSTS.housingUnit);
+      return (
+        <div className={styles.myBill}>
+          <ResultDisplay
+            label="Affordable units financed (subsidy gap closed)"
+            value={`≈ ${formatNumber(units, { fractionDigits: 0 })}`}
+            emphasis="primary"
+          />
+          <ResultDisplay
+            label="Assumed gap funding per unit"
+            value={formatCurrency(UNIT_COSTS.housingUnit, { maximumFractionDigits: 0 })}
+          />
+        </div>
+      );
+    }
+  }
 }
 
 type RateRowProps = {

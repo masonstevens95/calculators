@@ -35,3 +35,6 @@ export const WS_BASE = {
 
 /** Winston-Salem city population, 2020 U.S. Census. Used for per-resident dividend math. */
 export const WS_POPULATION = 249_545;
+
+/** Winston-Salem occupied households, 2020 U.S. Census. Used for per-household rebate math. */
+export const WS_HOUSEHOLDS = 96_376;

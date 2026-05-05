@@ -269,34 +269,85 @@
   outline: none;
 }
 
-.dividendRow {
-  margin-top: 1.25rem;
-  padding: 0.75rem 1rem;
+.useFieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0;
+  border: none;
+}
+
+.useOption {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.6rem;
+  align-items: start;
+  padding: 0.65rem 0.85rem;
+  background: var(--calc-color-surface-raised);
   border: 1px solid var(--calc-color-border);
   border-radius: 0.5rem;
-  background: var(--calc-color-surface-muted);
-}
-
-.dividendToggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--calc-color-text-emphasis);
   cursor: pointer;
+  transition: border-color 120ms, box-shadow 120ms;
 }
 
-.dividendToggle input {
+.useOption:hover {
+  border-color: var(--calc-color-input-focus-border);
+}
+
+.useOption:focus-within {
+  border-color: var(--calc-color-input-focus-border);
+  box-shadow: 0 0 0 3px var(--calc-color-focus-ring);
+}
+
+.useOption input[type='radio'] {
+  grid-row: 1;
+  margin-top: 0.2rem;
   accent-color: var(--calc-brand-lvt);
   cursor: pointer;
 }
 
-.dividendHint {
-  margin: 0.4rem 0 0 1.6rem;
-  font-size: 0.82rem;
-  line-height: 1.45;
+.useOptionActive {
+  border-color: var(--calc-brand-lvt);
+  background: var(--calc-color-callout-info-bg);
+}
+
+.useOptionLabel {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--calc-color-text-emphasis);
+}
+
+.useOptionDesc {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.8rem;
+  line-height: 1.4;
   color: var(--calc-color-text-muted);
+  margin-top: 0.15rem;
+}
+
+.useFootnote {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--calc-color-text-subtle);
+  font-style: italic;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 860px) {
