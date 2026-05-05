@@ -19,25 +19,25 @@ describe('routes — layout selection per URL', () => {
     expect(screen.getByRole('heading', { name: /calculators/i })).toBeInTheDocument();
   });
 
-  it('renders the wired calc under AppLayout for "/calc/:slug" (Surry County)', () => {
-    renderAt('/calc/surry-county-offer');
+  it('renders the wired calc under AppLayout for "/calc/:slug" (Rural Land Offer)', () => {
+    renderAt('/calc/rural-land-offer');
     // Chrome present: AppLayout banner + contentinfo
     expect(screen.getByRole('banner')).toBeInTheDocument();
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
-    // Real Surry County calc heading rendered
+    // Real calc heading rendered
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
   });
 
   it('renders the wired calc under EmbedLayout for "/embed/:slug" (chrome-free)', () => {
-    renderAt('/embed/surry-county-offer');
+    renderAt('/embed/rural-land-offer');
     // Chrome absent: no AppLayout banner / contentinfo
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
     // Calc itself still rendered
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
   });
 

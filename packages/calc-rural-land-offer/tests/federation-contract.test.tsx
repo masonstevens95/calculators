@@ -10,7 +10,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 
 afterEach(() => cleanup());
 
-describe('federation public-API contract for calc-surry-county-offer', () => {
+describe('federation public-API contract for calc-rural-land-offer', () => {
   it('default export is a renderable React component (no top-level side effects)', async () => {
     const mod = await import('../src/index');
     const Component = mod.default;
@@ -20,7 +20,7 @@ describe('federation public-API contract for calc-surry-county-offer', () => {
     render(<Component />);
     // The component renders its primary heading
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
   });
 
@@ -30,13 +30,13 @@ describe('federation public-API contract for calc-surry-county-offer', () => {
 
     const first = render(<Component />);
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
     first.unmount();
 
     const second = render(<Component />);
     expect(
-      screen.getByRole('heading', { name: /surry county offer/i, level: 1 }),
+      screen.getByRole('heading', { name: /rural land offer/i, level: 1 }),
     ).toBeInTheDocument();
     second.unmount();
   });

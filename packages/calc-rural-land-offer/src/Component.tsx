@@ -14,7 +14,7 @@ import { PitiChart } from './charts/PitiChart';
 import { CashChart } from './charts/CashChart';
 import styles from './Component.module.css';
 
-export function SurryCountyOfferComponent() {
+export function RuralLandOfferComponent() {
   const [inputs, setInputs] = useState<OfferInputs>(defaultInputs);
 
   function setField<K extends keyof OfferInputs>(key: K) {
@@ -46,7 +46,7 @@ export function SurryCountyOfferComponent() {
   if (!computation.ok) {
     return (
       <section className={styles.layout}>
-        <h1>Surry County Offer</h1>
+        <h1>Rural Land Offer</h1>
         <p role="alert">Some inputs are invalid. Adjust and try again.</p>
         <ul>
           {Object.entries(computation.errors).map(([field, message]) => (
@@ -63,19 +63,22 @@ export function SurryCountyOfferComponent() {
   const concessionAtLimit = inputs.concPct > r.concessionLimitPct;
 
   return (
-    <section className={styles.layout} aria-labelledby="surry-heading">
+    <section className={styles.layout} aria-labelledby="rural-land-heading">
       <div className={styles.header}>
-        <h1 id="surry-heading" className={styles.heading}>
-          Surry County Offer Calculator
+        <h1 id="rural-land-heading" className={styles.heading}>
+          Rural Land Offer Calculator
         </h1>
         <p className={styles.subtitle}>
-          Analyze seller concession scenarios and cash flow for a rural property purchase.
+          Plan a rural property purchase end-to-end: roll proceeds from selling your current home
+          into the down payment, model seller concessions against conventional loan limits, and
+          see the resulting PITI + monthly cash position. Tune the inputs to your scenario; the
+          presets below illustrate common offer shapes.
         </p>
       </div>
 
       <div className={styles.inputGrid}>
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>Birchwood Sale</h2>
+          <h2 className={styles.cardTitle}>Current Home Sale</h2>
           <FormField label="Sale price">
             {({ id, describedBy }) => (
               <CurrencyInput
@@ -411,4 +414,4 @@ function ScenarioRow({
   );
 }
 
-export default SurryCountyOfferComponent;
+export default RuralLandOfferComponent;

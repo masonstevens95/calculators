@@ -6,7 +6,7 @@ import { EmbedLayout } from '../../src/layouts/EmbedLayout';
 describe('<EmbedLayout />', () => {
   function renderWithLayout() {
     return render(
-      <MemoryRouter initialEntries={['/embed/surry-county-offer']}>
+      <MemoryRouter initialEntries={['/embed/rural-land-offer']}>
         <Routes>
           <Route element={<EmbedLayout />}>
             <Route path="/embed/:slug" element={<p>embedded content</p>} />

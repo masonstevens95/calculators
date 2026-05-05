@@ -11,6 +11,7 @@ import { findCalculator } from './calculators';
 // the same paths during in-app SPA navigation.
 const SLUG_REDIRECTS: Readonly<Record<string, string>> = {
   'birchwood-rent-sell': 'rent-sell',
+  'surry-county-offer': 'rural-land-offer',
 };
 
 // Wraps the placeholder render with an unknown-slug check so route resolution

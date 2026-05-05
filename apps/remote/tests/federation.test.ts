@@ -20,7 +20,7 @@ const EXPECTED_EXPOSES = [
   './CalculatorsApp',
   './CalculatorsRoutes',
   './CalculatorsLoadError',
-  './calc/surry-county-offer',
+  './calc/rural-land-offer',
   './calc/lgs-dscr',
   './calc/olamina-dscr',
   './calc/eu5-loan',

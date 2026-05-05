@@ -12,7 +12,7 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: var(--calc-brand-surry);
+  color: var(--calc-brand-rural);
 }
 
 .subtitle {
@@ -38,12 +38,12 @@
 .cardTitle {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--calc-brand-surry);
+  color: var(--calc-brand-rural);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding-bottom: 0.5rem;
   margin: 0 0 0.75rem;
-  border-bottom: 2px solid var(--calc-brand-surry-pale-line);
+  border-bottom: 2px solid var(--calc-brand-rural-pale-line);
 }
 
 .twoCol {
@@ -59,7 +59,7 @@
 .sectionHeading {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--calc-brand-surry);
+  color: var(--calc-brand-rural);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 0.5rem;
@@ -117,11 +117,11 @@
 }
 
 .hlCol {
-  background: var(--calc-brand-surry-hl-bg);
+  background: var(--calc-brand-rural-hl-bg);
 }
 
 .customCol {
-  background: var(--calc-brand-surry-custom-bg);
+  background: var(--calc-brand-rural-custom-bg);
 }
 
 .chartsGrid {

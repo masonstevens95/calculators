@@ -9,7 +9,7 @@ export { CalculatorsLoadError } from '../CalculatorsLoadError';
 
 // Per-calc components — host can mount any one without bringing in the
 // surrounding shell layouts. Each is the package's default export.
-export { default as SurryCountyOffer } from 'calc-surry-county-offer';
+export { default as RuralLandOffer } from 'calc-rural-land-offer';
 export { default as LgsDscr } from 'calc-lgs-dscr';
 export { default as OlaminaDscr } from 'calc-olamina-dscr';
 export { default as Eu5Loan } from 'calc-eu5-loan';

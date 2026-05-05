@@ -66,6 +66,16 @@
       "source": "/embed/birchwood-rent-sell",
       "destination": "/embed/rent-sell",
       "permanent": true
+    },
+    {
+      "source": "/calc/surry-county-offer",
+      "destination": "/calc/rural-land-offer",
+      "permanent": true
+    },
+    {
+      "source": "/embed/surry-county-offer",
+      "destination": "/embed/rural-land-offer",
+      "permanent": true
     }
   ],
   "rewrites": [{ "source": "/:path*", "destination": "/index.html" }]

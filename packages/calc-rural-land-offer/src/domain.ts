@@ -1,20 +1,20 @@
-// Pure domain for the Surry County Offer calculator. No React imports —
+// Pure domain for the Rural Land Offer calculator. No React imports —
 // the Vitest node environment for domain.test.ts surfaces accidental DOM
 // coupling as a test failure.
 //
 // Behavior reference: reference/html-originals/Surry County Offer Calculator.html
 
 export type OfferInputs = {
-  /** Birchwood sale price (input). */
+  /** Current home sale price (input). */
   salePrice: number;
-  /** Mortgage payoff. */
+  /** Mortgage payoff on the current home. */
   payoff: number;
   /** Realtor commission, percent of sale (e.g. 6 = 6%). */
   realtorPct: number;
   /** Transfer + closing costs on the sell side, percent of sale. */
   transferPct: number;
 
-  /** Offer price for the Surry County purchase. */
+  /** Offer price on the rural property purchase. */
   offerPrice: number;
   /** Down payment as a percent of the offer (e.g. 25 = 25%). */
   downPct: number;

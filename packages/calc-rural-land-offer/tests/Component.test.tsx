@@ -3,19 +3,19 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
-import { SurryCountyOfferComponent } from '../src/Component';
+import { RuralLandOfferComponent } from '../src/Component';
 import { computeOffer } from '../src/domain';
 import { defaultInputs } from '../src/presets';
 import { fixtures } from './fixtures';
 
-describe('<SurryCountyOfferComponent />', () => {
+describe('<RuralLandOfferComponent />', () => {
   it('renders the heading and subtitle', () => {
-    render(<SurryCountyOfferComponent />);
-    expect(screen.getByRole('heading', { name: /surry county offer/i, level: 1 })).toBeInTheDocument();
+    render(<RuralLandOfferComponent />);
+    expect(screen.getByRole('heading', { name: /rural land offer/i, level: 1 })).toBeInTheDocument();
   });
 
   it('renders all input fields with labels (happy path)', () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     expect(screen.getByLabelText(/sale price/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/mortgage payoff/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/realtor commission/i)).toBeInTheDocument();
@@ -31,7 +31,7 @@ describe('<SurryCountyOfferComponent />', () => {
   });
 
   it('reflects the default scenario in the result section (matches domain.computeOffer)', () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     const computed = computeOffer(defaultInputs);
     expect(computed.ok).toBe(true);
     if (!computed.ok) return;
@@ -42,7 +42,7 @@ describe('<SurryCountyOfferComponent />', () => {
   });
 
   it('updates the AriaLive results region when an input changes (AE3)', async () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     const user = userEvent.setup();
     const offer = screen.getByLabelText(/offer price/i);
     // Sanity: default is $415k → loan $311,250 visible
@@ -54,12 +54,12 @@ describe('<SurryCountyOfferComponent />', () => {
   });
 
   it('routes the computed metrics through an aria-live region', () => {
-    const { container } = render(<SurryCountyOfferComponent />);
+    const { container } = render(<RuralLandOfferComponent />);
     expect(container.querySelector('[aria-live]')).not.toBeNull();
   });
 
   it('shows the concession-over-limit warning at 95% LTV with 6% concession', async () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     const user = userEvent.setup();
     const down = screen.getByLabelText(/down payment/i);
     await user.clear(down);
@@ -72,7 +72,7 @@ describe('<SurryCountyOfferComponent />', () => {
   });
 
   it('keyboard tab order traverses inputs in DOM order without trap', async () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     const user = userEvent.setup();
     // Press Tab and confirm we eventually reach the last input without throwing
     for (let i = 0; i < 12; i++) {
@@ -82,13 +82,13 @@ describe('<SurryCountyOfferComponent />', () => {
   });
 
   it('renders both charts with accessible aria-labels', () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     expect(screen.getByRole('img', { name: /monthly piti by scenario/i })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /final cash reserve by scenario/i })).toBeInTheDocument();
   });
 
   it('renders the scenario comparison table with one column per preset + custom', () => {
-    render(<SurryCountyOfferComponent />);
+    render(<RuralLandOfferComponent />);
     const heading = screen.getByRole('heading', { name: /scenario comparison/i });
     const section = heading.closest('section');
     expect(section).not.toBeNull();

@@ -16,7 +16,7 @@ export default defineConfig({
         './CalculatorsApp': './src/CalculatorsApp.tsx',
         './CalculatorsRoutes': './src/CalculatorsRoutes.tsx',
         './CalculatorsLoadError': './src/CalculatorsLoadError.tsx',
-        './calc/surry-county-offer': 'calc-surry-county-offer',
+        './calc/rural-land-offer': 'calc-rural-land-offer',
         './calc/lgs-dscr': 'calc-lgs-dscr',
         './calc/olamina-dscr': 'calc-olamina-dscr',
         './calc/eu5-loan': 'calc-eu5-loan',
