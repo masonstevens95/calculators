@@ -10,15 +10,38 @@ import {
 import { formatCurrency, formatPercent } from '@calc/domain-utils';
 import { computeDscr } from './domain';
 import type { DscrInputs, HomeInput } from './domain';
-import { MODELS, findModel } from './models';
-import { defaultInputs, presets } from './presets';
+import {
+  BUILDER_LABELS,
+  findModel,
+  modelsForBuilder,
+} from './models';
+import type { Builder, KitTier } from './models';
+import {
+  defaultInputs,
+  DEFAULT_HOMES_BY_BUILDER,
+  presetsForBuilder,
+} from './presets';
 import styles from './Component.module.css';
 
 const MIN_HOMES = 1;
 const MAX_HOMES = 20;
 
-export function LgsDscrComponent() {
+export function ModularHomeDscrComponent() {
   const [inputs, setInputs] = useState<DscrInputs>(defaultInputs);
+
+  const builderModels = useMemo(() => modelsForBuilder(inputs.builder), [inputs.builder]);
+  const builderPresets = useMemo(() => presetsForBuilder(inputs.builder), [inputs.builder]);
+
+  // Kit-tier control is only meaningful when at least one selected model uses
+  // tier-based pricing (currently: any Momohomes model).
+  const portfolioUsesTiers = useMemo(
+    () =>
+      inputs.homes.some((h) => {
+        const m = findModel(h.modelId);
+        return m !== undefined && m.tiers !== undefined;
+      }),
+    [inputs.homes],
+  );
 
   function setField<K extends keyof DscrInputs>(key: K) {
     return (next: number | '') => {
@@ -26,12 +49,24 @@ export function LgsDscrComponent() {
     };
   }
 
+  function setBuilder(builder: Builder) {
+    if (builder === inputs.builder) return;
+    // Reset the home portfolio to that builder's default starter set so we
+    // never end up with cross-builder model IDs (validation would reject).
+    setInputs((prev) => ({
+      ...prev,
+      builder,
+      homes: DEFAULT_HOMES_BY_BUILDER[builder].map((h) => ({ ...h })),
+    }));
+  }
+
   function setHomeCount(count: number) {
     const clamped = Math.max(MIN_HOMES, Math.min(MAX_HOMES, Math.floor(count)));
     setInputs((prev) => {
       const next = [...prev.homes];
-      while (next.length < clamped) {
-        next.push({ modelId: 'cumberland' });
+      const fillerId = DEFAULT_HOMES_BY_BUILDER[prev.builder][0]?.modelId ?? builderModels[0]?.id;
+      while (next.length < clamped && fillerId) {
+        next.push({ modelId: fillerId });
       }
       next.length = clamped;
       return { ...prev, homes: next };
@@ -60,7 +95,7 @@ export function LgsDscrComponent() {
   }
 
   function applyPreset(presetId: string) {
-    const preset = presets.find((p) => p.id === presetId);
+    const preset = builderPresets.find((p) => p.id === presetId);
     if (!preset) return;
     setInputs((prev) => ({ ...prev, homes: preset.homes.map((h) => ({ ...h })) }));
   }
@@ -70,7 +105,7 @@ export function LgsDscrComponent() {
   if (!computation.ok) {
     return (
       <section className={styles.layout}>
-        <h1>LGS DSCR</h1>
+        <h1>Modular Home DSCR</h1>
         <p role="alert">Some inputs are invalid. Adjust and try again.</p>
         <ul>
           {Object.entries(computation.errors).map(([field, message]) => (
@@ -86,26 +121,51 @@ export function LgsDscrComponent() {
   const { perHome, totals, summary, cash } = computation.result;
 
   return (
-    <section className={styles.layout} aria-labelledby="lgs-heading">
+    <section className={styles.layout} aria-labelledby="modular-dscr-heading">
       <div className={styles.header}>
-        <h1 id="lgs-heading" className={styles.heading}>
-          LGS DSCR Calculator
+        <h1 id="modular-dscr-heading" className={styles.heading}>
+          Modular Home Development Calculator
         </h1>
         <p className={styles.subtitle}>
-          Estimate per-home DSCR for an LGS / Nationwide Homes build portfolio.
+          Estimate per-home DSCR for a modular-home build portfolio. Pick the builder you&apos;re
+          quoting, choose models, and the calculator handles kit pricing, build cost, infrastructure,
+          and PITIA against a target debt-service-coverage ratio.
         </p>
         <p className={styles.privacyNote}>
           Inputs don&apos;t leave your browser. All math runs locally.
         </p>
       </div>
 
+      <fieldset className={styles.builderFieldset}>
+        <legend className={styles.builderLegend}>Builder</legend>
+        {(['nationwide', 'momohomes'] as const).map((b) => (
+          <label
+            key={b}
+            className={`${styles.builderOption} ${inputs.builder === b ? styles.builderOptionActive : ''}`}
+          >
+            <input
+              type="radio"
+              name="builder"
+              value={b}
+              checked={inputs.builder === b}
+              onChange={() => setBuilder(b)}
+            />
+            <span className={styles.builderOptionLabel}>{BUILDER_LABELS[b]}</span>
+            <span className={styles.builderOptionMeta}>
+              {modelsForBuilder(b).length} models · {b === 'nationwide' ? 'SFH / Cape' : 'ADU / SPH'}
+            </span>
+          </label>
+        ))}
+      </fieldset>
+
       <div className={styles.presets} role="group" aria-label="Quick presets">
-        {presets.map((p) => (
+        {builderPresets.map((p) => (
           <button
             key={p.id}
             type="button"
             className={styles.presetBtn}
             onClick={() => applyPreset(p.id)}
+            title={p.label}
           >
             Preset {p.id.toUpperCase()}
           </button>
@@ -126,6 +186,24 @@ export function LgsDscrComponent() {
           )}
         </FormField>
 
+        {portfolioUsesTiers ? (
+          <FormField label="Kit tier">
+            {({ id }) => (
+              <select
+                id={id}
+                value={inputs.kitTier}
+                onChange={(e) =>
+                  setInputs((prev) => ({ ...prev, kitTier: e.target.value as KitTier }))
+                }
+                className={styles.tierSelect}
+              >
+                <option value="plus">Plus</option>
+                <option value="max">Max</option>
+              </select>
+            )}
+          </FormField>
+        ) : null}
+
         <div className={styles.homesGrid}>
           {inputs.homes.map((home, i) => {
             const model = findModel(home.modelId);
@@ -139,16 +217,18 @@ export function LgsDscrComponent() {
                     onChange={(e) => setHomeModel(i, e.target.value)}
                     className={styles.modelSelect}
                   >
-                    {MODELS.map((m) => (
+                    {builderModels.map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name} ({m.bedrooms}BR/{m.bathrooms}BA, {m.sqft.toLocaleString()} sqft)
+                        {m.name}
+                        {m.upcoming ? ' *' : ''} ({m.bedrooms}BR/{m.bathrooms}BA,{' '}
+                        {m.sqft.toLocaleString()} sqft)
                       </option>
                     ))}
                   </select>
                 </label>
                 {model ? (
                   <div className={styles.homeMeta}>
-                    Module {formatCurrency(ph?.modulePriceDiscounted ?? 0)} · build{' '}
+                    Kit {formatCurrency(ph?.kitPriceDiscounted ?? 0)} · build{' '}
                     {formatCurrency(ph?.buildCost ?? 0)} · total{' '}
                     {formatCurrency(ph?.totalCost ?? 0)}
                   </div>
@@ -216,7 +296,7 @@ export function LgsDscrComponent() {
 
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Costs</h2>
-          <FormField label="Bulk module discount (%)">
+          <FormField label="Bulk kit discount (%)">
             {({ id, describedBy }) => (
               <PercentInput
                 id={id}
@@ -304,7 +384,7 @@ export function LgsDscrComponent() {
                 <th>Model</th>
                 <th>Sqft</th>
                 <th>BR/BA</th>
-                <th>Module</th>
+                <th>Kit</th>
                 <th>Build</th>
                 <th>Total</th>
                 <th>Down</th>
@@ -321,7 +401,7 @@ export function LgsDscrComponent() {
                   <td>
                     {ph.model.bedrooms}/{ph.model.bathrooms}
                   </td>
-                  <td>{formatCurrency(ph.modulePriceDiscounted)}</td>
+                  <td>{formatCurrency(ph.kitPriceDiscounted)}</td>
                   <td>{formatCurrency(ph.buildCost)}</td>
                   <td>{formatCurrency(ph.totalCost)}</td>
                   <td>{formatCurrency(ph.down)}</td>
@@ -333,7 +413,7 @@ export function LgsDscrComponent() {
                 <td colSpan={2}>TOTAL ({perHome.length} homes)</td>
                 <td>{totals.sqft.toLocaleString()}</td>
                 <td />
-                <td>{formatCurrency(totals.module)}</td>
+                <td>{formatCurrency(totals.kit)}</td>
                 <td>{formatCurrency(totals.build)}</td>
                 <td>{formatCurrency(totals.totalCost)}</td>
                 <td>{formatCurrency(totals.down)}</td>
@@ -362,8 +442,8 @@ export function LgsDscrComponent() {
             value={formatCurrency(summary.annualRent, { maximumFractionDigits: 0 })}
           />
           <ResultDisplay
-            label={`Module cost (${inputs.discountPct}% discount)`}
-            value={formatCurrency(totals.module)}
+            label={`Kit cost (${inputs.discountPct}% discount)`}
+            value={formatCurrency(totals.kit)}
             detail={`Saved ${formatCurrency(summary.discountSavings)}`}
           />
           <ResultDisplay
@@ -396,4 +476,4 @@ export function LgsDscrComponent() {
   );
 }
 
-export default LgsDscrComponent;
+export default ModularHomeDscrComponent;

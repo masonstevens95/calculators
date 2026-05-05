@@ -110,12 +110,9 @@ importers:
       calc-eu5-loan:
         specifier: workspace:*
         version: link:../../packages/calc-eu5-loan
-      calc-lgs-dscr:
+      calc-modular-home-dscr:
         specifier: workspace:*
-        version: link:../../packages/calc-lgs-dscr
-      calc-olamina-dscr:
-        specifier: workspace:*
-        version: link:../../packages/calc-olamina-dscr
+        version: link:../../packages/calc-modular-home-dscr
       calc-rent-sell:
         specifier: workspace:*
         version: link:../../packages/calc-rent-sell
@@ -150,7 +147,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.5(react@19.2.5)
 
-  packages/calc-lgs-dscr:
+  packages/calc-modular-home-dscr:
     dependencies:
       '@calc/domain-utils':
         specifier: workspace:*
@@ -164,25 +161,6 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.2.5(react@19.2.5)
-
-  packages/calc-olamina-dscr:
-    dependencies:
-      '@calc/domain-utils':
-        specifier: workspace:*
-        version: link:../domain-utils
-      '@calc/ui':
-        specifier: workspace:*
-        version: link:../ui
-      react:
-        specifier: ^19.0.0
-        version: 19.2.5
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.5(react@19.2.5)
-    devDependencies:
-      calc-lgs-dscr:
-        specifier: workspace:*
-        version: link:../calc-lgs-dscr
 
   packages/calc-rent-sell:
     dependencies:

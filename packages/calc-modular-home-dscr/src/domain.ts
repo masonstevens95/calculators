@@ -1,44 +1,48 @@
-// Pure domain for the Olamina (Momo Homes) DSCR calculator.
-//
-// Math authored INDEPENDENTLY of calc-lgs-dscr per KTD #4. The structure is
-// the same (DSCR is DSCR), but every formula is re-typed by hand from the
-// original JS — `git log` shows the two domains landing in separate commits
-// without copy-pasting between packages. Drift surfaces in test failures in
-// both; the cross-package agreement test in tests/cross-package.test.ts
-// verifies the zero-overhead overlap point.
-//
-// Olamina-specific divergence from LGS: kit pricing depends on a tier
-// (plus | max), with per-model fallbacks (KTD #4 acknowledged this as the
-// genuine difference).
+// Pure domain for the Modular Home DSCR calculator. Single math
+// implementation handles both Nationwide Homes (single kit price) and
+// Momohomes (Plus/Max tier) builders via getKitPrice in models.ts.
 
 import { findModel, getKitPrice } from './models';
-import type { KitTier, OlaminaModel } from './models';
+import type { Builder, DscrModel, KitTier } from './models';
 
 export type HomeInput = {
   modelId: string;
+  /** Optional override for the per-home build cost; falls back to model.defaultBuild. */
   buildOverride?: number;
 };
 
 export type DscrInputs = {
+  /** Which builder's catalog the portfolio is drawn from. */
+  builder: Builder;
   homes: HomeInput[];
+  /** Kit tier — used by Momohomes models with tier pricing; ignored otherwise. */
+  kitTier: KitTier;
+  /** Mortgage rate, annual percent (e.g. 7 = 7%). */
   ratePct: number;
+  /** Down payment as percent of total cost (e.g. 20 = 20%). */
   downPct: number;
+  /** DSCR target (e.g. 1.25). */
   dscrTarget: number;
+  /** Mortgage term in years. */
   termYears: number;
+  /** Bulk-purchase kit discount, percent (e.g. 5 = 5% off). */
   discountPct: number;
+  /** Total infrastructure cost, split evenly across homes. */
   infraTotal: number;
+  /** Annual property tax rate, percent of total cost. */
   taxRatePct: number;
+  /** Annual insurance rate, percent of total cost. */
   insRatePct: number;
+
+  /** Cash-requirement inputs */
   reserveMonths: number;
   origFeePct: number;
   otherClosing: number;
-  /** Olamina-specific addon per KTD #4. */
-  kitTier: KitTier;
 };
 
 export type PerHomeOutput = {
-  model: OlaminaModel;
-  /** Discounted kit price for the chosen tier. */
+  model: DscrModel;
+  /** Discounted kit price (post bulk discount). */
   kitPriceDiscounted: number;
   buildCost: number;
   infraShare: number;
@@ -54,7 +58,7 @@ export type PerHomeOutput = {
 
 export type DscrTotals = {
   sqft: number;
-  /** Sum of discounted kits. */
+  /** Sum of discounted kit prices across all homes. */
   kit: number;
   build: number;
   totalCost: number;
@@ -68,7 +72,9 @@ export type DscrSummary = {
   annualRent: number;
   /** Kit total grossed-up by the discount (the pre-discount price). */
   kitBeforeDiscount: number;
+  /** kitBeforeDiscount − totals.kit. */
   discountSavings: number;
+  /** Loan ÷ totalCost × 100. */
   ltvPct: number;
 };
 
@@ -93,11 +99,11 @@ export type ComputeDscrResult =
 
 export function monthlyPayment(principal: number, annualRatePct: number, termYears: number): number {
   if (principal <= 0) return 0;
-  const monthlyRate = annualRatePct / 100 / 12;
-  const months = termYears * 12;
-  if (monthlyRate === 0) return principal / months;
-  const growth = Math.pow(1 + monthlyRate, months);
-  return (principal * monthlyRate * growth) / (growth - 1);
+  const r = annualRatePct / 100 / 12;
+  const n = termYears * 12;
+  if (r === 0) return principal / n;
+  const factor = Math.pow(1 + r, n);
+  return (principal * r * factor) / (factor - 1);
 }
 
 const NUMERIC_FIELDS: readonly (keyof DscrInputs)[] = [
@@ -128,6 +134,9 @@ export function validateDscrInputs(
       errors[field] = `${field} must be zero or greater.`;
     }
   }
+  if (inputs.builder !== 'nationwide' && inputs.builder !== 'momohomes') {
+    errors.builder = 'builder must be "nationwide" or "momohomes".';
+  }
   if (inputs.kitTier !== 'plus' && inputs.kitTier !== 'max') {
     errors.kitTier = 'kitTier must be "plus" or "max".';
   }
@@ -135,8 +144,13 @@ export function validateDscrInputs(
     errors.homes = 'At least one home is required.';
   } else {
     for (const home of inputs.homes) {
-      if (!findModel(home.modelId)) {
+      const model = findModel(home.modelId);
+      if (!model) {
         errors.homes = `Unknown model: ${home.modelId}`;
+        break;
+      }
+      if (model.builder !== inputs.builder) {
+        errors.homes = `Model ${home.modelId} does not belong to builder ${inputs.builder}.`;
         break;
       }
     }

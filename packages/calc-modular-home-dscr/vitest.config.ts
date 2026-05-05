@@ -7,7 +7,7 @@ export default mergeConfig(
   defineConfig({
     plugins: [react()],
     test: {
-      name: 'calc-lgs-dscr',
+      name: 'calc-modular-home-dscr',
       environment: 'jsdom',
       setupFiles: ['./tests/setup.ts'],
       include: ['tests/**/*.test.{ts,tsx}'],

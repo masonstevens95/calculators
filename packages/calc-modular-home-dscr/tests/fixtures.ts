@@ -1,9 +1,5 @@
-// KTD #24 — canonical inputs/outputs for calc-lgs-dscr derived from
-// reference/html-originals/lgs-dscr-calculator.html.
-//
-// Domain math is independently authored (NOT shared with calc-olamina-dscr
-// per KTD #4). Both packages have full TDD coverage; cross-package agreement
-// for shared formulas (monthlyPayment textbook case) is asserted in U6.
+// Canonical fixtures for calc-modular-home-dscr — Nationwide branch.
+// Original reference: reference/html-originals/lgs-dscr-calculator.html.
 
 import type { DscrInputs } from '../src/domain';
 
@@ -13,7 +9,7 @@ export type Fixture = {
   expected: {
     perHomeCount: number;
     sqftTotal: number;
-    moduleTotal: number;
+    kitTotal: number;
     buildTotal: number;
     totalCost: number;
     downTotal: number;
@@ -21,7 +17,7 @@ export type Fixture = {
     rentTotal: number;
     avgRentPerHome: number;
     annualRent: number;
-    moduleBeforeDiscount: number;
+    kitBeforeDiscount: number;
     discountSavings: number;
     loanAmount: number;
     origCost: number;
@@ -36,7 +32,9 @@ export type Fixture = {
 const DEFAULT_HOMES = Array.from({ length: 7 }, () => ({ modelId: 'cumberland' as const }));
 
 const DEFAULT_INPUT: DscrInputs = {
+  builder: 'nationwide',
   homes: DEFAULT_HOMES,
+  kitTier: 'plus',
   ratePct: 7,
   downPct: 20,
   dscrTarget: 1.25,
@@ -58,7 +56,7 @@ export const fixtures: readonly Fixture[] = [
       perHomeCount: 7,
       sqftTotal: 1664 * 7, // 11,648
       // discountedModule per home = 282880 * 0.95 = 268736; total = 268736*7 = 1,881,152
-      moduleTotal: 268_736 * 7,
+      kitTotal: 268_736 * 7,
       buildTotal: 23_312 * 7, // 163,184
       // totalCost per home = 268736 + 23312 + 100000/7 = 306,333.43; ×7 = 2,144,333
       totalCost: 268_736 * 7 + 23_312 * 7 + 100_000,
@@ -71,8 +69,8 @@ export const fixtures: readonly Fixture[] = [
       rentTotal: 17_281.7934,
       avgRentPerHome: 2_468.8276,
       annualRent: 207_381.521,
-      // moduleBeforeDiscount = moduleTotal / 0.95
-      moduleBeforeDiscount: (268_736 * 7) / 0.95,
+      // kitBeforeDiscount = kitTotal / 0.95
+      kitBeforeDiscount: (268_736 * 7) / 0.95,
       discountSavings: (268_736 * 7) / 0.95 - 268_736 * 7,
       loanAmount:
         (268_736 * 7 + 23_312 * 7 + 100_000) - (268_736 * 7 + 23_312 * 7 + 100_000) * 0.2,
@@ -96,7 +94,7 @@ export const fixtures: readonly Fixture[] = [
       perHomeCount: 1,
       sqftTotal: 1902,
       // discountedModule = 323340 * 0.95 = 307173
-      moduleTotal: 307_173,
+      kitTotal: 307_173,
       buildTotal: 25_216,
       // totalCost = 307173 + 25216 + 0 = 332389
       totalCost: 332_389,
@@ -106,7 +104,7 @@ export const fixtures: readonly Fixture[] = [
       rentTotal: 2_678.8143,
       avgRentPerHome: 2_678.8143,
       annualRent: 32_145.7721,
-      moduleBeforeDiscount: 307_173 / 0.95,
+      kitBeforeDiscount: 307_173 / 0.95,
       discountSavings: 307_173 / 0.95 - 307_173,
       loanAmount: 332_389 * 0.8,
       origCost: 332_389 * 0.8 * 0.01,
@@ -127,7 +125,7 @@ export const fixtures: readonly Fixture[] = [
     expected: {
       perHomeCount: 1,
       sqftTotal: 1664,
-      moduleTotal: 268_736,
+      kitTotal: 268_736,
       buildTotal: 23_312,
       totalCost: 292_048,
       downTotal: 292_048 * 0.2,
@@ -136,7 +134,7 @@ export const fixtures: readonly Fixture[] = [
       rentTotal: 977.55 * 1.25,
       avgRentPerHome: 977.55 * 1.25,
       annualRent: 977.55 * 1.25 * 12,
-      moduleBeforeDiscount: 268_736 / 0.95,
+      kitBeforeDiscount: 268_736 / 0.95,
       discountSavings: 268_736 / 0.95 - 268_736,
       loanAmount: 292_048 * 0.8,
       origCost: 292_048 * 0.8 * 0.01,
@@ -164,7 +162,7 @@ export const fixtures: readonly Fixture[] = [
       perHomeCount: 7,
       sqftTotal: 1664 * 3 + 1902 * 2 + 2813 * 2,
       // module: 282880*0.95*3 + 323340*0.95*2 + 464145*0.95*2 = 268736*3 + 307173*2 + 440937.75*2
-      moduleTotal: 268_736 * 3 + 307_173 * 2 + 440_937.75 * 2,
+      kitTotal: 268_736 * 3 + 307_173 * 2 + 440_937.75 * 2,
       buildTotal: 23_312 * 3 + 25_216 * 2 + 32_504 * 2,
       totalCost:
         268_736 * 3 + 307_173 * 2 + 440_937.75 * 2 + 23_312 * 3 + 25_216 * 2 + 32_504 * 2 + 100_000,
@@ -181,7 +179,7 @@ export const fixtures: readonly Fixture[] = [
       rentTotal: 20_855.836,
       avgRentPerHome: 2_979.4051,
       annualRent: 250_270.0326,
-      moduleBeforeDiscount:
+      kitBeforeDiscount:
         (268_736 * 3 + 307_173 * 2 + 440_937.75 * 2) / 0.95,
       discountSavings:
         (268_736 * 3 + 307_173 * 2 + 440_937.75 * 2) / 0.95 -
@@ -227,7 +225,7 @@ export const fixtures: readonly Fixture[] = [
     expected: {
       perHomeCount: 7,
       sqftTotal: 1664 * 7,
-      moduleTotal: 268_736 * 7,
+      kitTotal: 268_736 * 7,
       buildTotal: 23_312 * 7,
       totalCost: 268_736 * 7 + 23_312 * 7 + 100_000,
       downTotal: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.4,
@@ -235,7 +233,7 @@ export const fixtures: readonly Fixture[] = [
       rentTotal: 13_715.2132,
       avgRentPerHome: 1_959.3162,
       annualRent: 164_582.5582,
-      moduleBeforeDiscount: (268_736 * 7) / 0.95,
+      kitBeforeDiscount: (268_736 * 7) / 0.95,
       discountSavings: (268_736 * 7) / 0.95 - 268_736 * 7,
       loanAmount: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.6,
       origCost: (268_736 * 7 + 23_312 * 7 + 100_000) * 0.6 * 0.01,

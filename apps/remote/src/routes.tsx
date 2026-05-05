@@ -12,6 +12,8 @@ import { findCalculator } from './calculators';
 const SLUG_REDIRECTS: Readonly<Record<string, string>> = {
   'birchwood-rent-sell': 'rent-sell',
   'surry-county-offer': 'rural-land-offer',
+  'lgs-dscr': 'modular-home-dscr',
+  'olamina-dscr': 'modular-home-dscr',
 };
 
 // Wraps the placeholder render with an unknown-slug check so route resolution

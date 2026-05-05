@@ -21,8 +21,7 @@ const EXPECTED_EXPOSES = [
   './CalculatorsRoutes',
   './CalculatorsLoadError',
   './calc/rural-land-offer',
-  './calc/lgs-dscr',
-  './calc/olamina-dscr',
+  './calc/modular-home-dscr',
   './calc/eu5-loan',
   './calc/winston-salem-lvt',
   './calc/rent-sell',
@@ -43,7 +42,7 @@ describe.runIf(existsSync(MANIFEST_PATH))('federation manifest contract', () => 
     expect(manifest.metaData.remoteEntry.name).toBe('remoteEntry.js');
   });
 
-  it('exposes the documented surface — 3 shell components + 6 per-calc', () => {
+  it('exposes the documented surface — 3 shell components + 5 per-calc', () => {
     const exposedPaths = manifest.exposes.map((e: { path: string }) => e.path);
     for (const expected of EXPECTED_EXPOSES) {
       expect(exposedPaths).toContain(expected);
