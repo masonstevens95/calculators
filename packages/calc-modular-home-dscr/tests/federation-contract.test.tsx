@@ -5,7 +5,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 
 afterEach(() => cleanup());
 
-describe('federation public-API contract for calc-lgs-dscr', () => {
+describe('federation public-API contract for calc-modular-home-dscr', () => {
   it('default export is a renderable React component (no top-level side effects)', async () => {
     const mod = await import('../src/index');
     const Component = mod.default;
@@ -13,7 +13,9 @@ describe('federation public-API contract for calc-lgs-dscr', () => {
     expect(typeof Component).toBe('function');
 
     render(<Component />);
-    expect(screen.getByRole('heading', { name: /lgs dscr/i, level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /modular home development calculator/i, level: 1 }),
+    ).toBeInTheDocument();
   });
 
   it('is idempotent across two mount cycles', async () => {
@@ -23,7 +25,9 @@ describe('federation public-API contract for calc-lgs-dscr', () => {
     const first = render(<Component />);
     first.unmount();
     const second = render(<Component />);
-    expect(screen.getByRole('heading', { name: /lgs dscr/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /modular home development calculator/i }),
+    ).toBeInTheDocument();
     second.unmount();
   });
 
@@ -34,5 +38,7 @@ describe('federation public-API contract for calc-lgs-dscr', () => {
     expect(typeof mod.computePerHome).toBe('function');
     expect(typeof mod.validateDscrInputs).toBe('function');
     expect(Array.isArray(mod.MODELS)).toBe(true);
+    expect(typeof mod.modelsForBuilder).toBe('function');
+    expect(typeof mod.getKitPrice).toBe('function');
   });
 });

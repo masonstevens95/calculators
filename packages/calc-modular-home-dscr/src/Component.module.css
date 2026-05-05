@@ -1,5 +1,5 @@
 .layout {
-  max-width: 80rem;
+  max-width: 78rem;
   margin: 0 auto;
   font-size: 0.92rem;
   color: var(--calc-color-text);
@@ -12,7 +12,7 @@
 .heading {
   margin: 0 0 0.25rem;
   font-size: 1.4rem;
-  color: var(--calc-brand-olamina);
+  color: var(--calc-brand-modular);
 }
 
 .subtitle {
@@ -36,19 +36,19 @@
 }
 
 .presetBtn {
-  background: var(--calc-brand-olamina-pale);
-  border: 1px solid var(--calc-brand-olamina-border);
-  color: var(--calc-brand-olamina-strong);
+  background: var(--calc-color-button-bg);
+  border: 1px solid var(--calc-color-input-border);
+  color: var(--calc-color-text-emphasis);
   padding: 0.4rem 0.75rem;
   border-radius: 0.375rem;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   transition: background 0.15s;
 }
 
 .presetBtn:hover,
 .presetBtn:focus-visible {
-  background: var(--calc-brand-olamina-border);
+  background: var(--calc-color-button-bg-hover);
 }
 
 .card {
@@ -66,18 +66,6 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 0 0.25rem;
-}
-
-.tierSelect,
-.modelSelect {
-  display: block;
-  width: 100%;
-  margin-top: 0.25rem;
-  padding: 0.4rem;
-  border: 1px solid var(--calc-color-input-border);
-  border-radius: 0.375rem;
-  background: var(--calc-color-input-bg);
-  color: var(--calc-color-text-emphasis);
 }
 
 .homesGrid {
@@ -99,6 +87,17 @@
   font-size: 0.85rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
+}
+
+.modelSelect {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.4rem;
+  border: 1px solid var(--calc-color-input-border);
+  border-radius: 0.375rem;
+  background: var(--calc-color-input-bg);
+  color: var(--calc-color-text-emphasis);
 }
 
 .homeMeta {
@@ -174,4 +173,78 @@
   background: var(--calc-color-surface-muted);
   border-radius: 0.5rem;
   padding: 0.5rem 1rem;
+}
+
+.builderFieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: 1px solid var(--calc-color-border);
+  border-radius: 0.5rem;
+  background: var(--calc-color-surface-raised);
+}
+
+.builderLegend {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--calc-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 0.5rem;
+}
+
+.builderOption {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.6rem;
+  align-items: center;
+  padding: 0.6rem 0.85rem;
+  background: var(--calc-color-surface-stripe);
+  border: 1px solid var(--calc-color-border);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+}
+
+.builderOption:hover {
+  border-color: var(--calc-color-input-focus-border);
+}
+
+.builderOption input[type='radio'] {
+  grid-row: 1;
+  accent-color: var(--calc-brand-modular);
+  cursor: pointer;
+}
+
+.builderOptionActive {
+  border-color: var(--calc-brand-modular);
+  background: var(--calc-color-callout-info-bg);
+}
+
+.builderOptionLabel {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--calc-color-text-emphasis);
+}
+
+.builderOptionMeta {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.78rem;
+  color: var(--calc-color-text-subtle);
+}
+
+.tierSelect {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0.4rem;
+  border: 1px solid var(--calc-color-input-border);
+  border-radius: 0.375rem;
+  background: var(--calc-color-input-bg);
+  color: var(--calc-color-text-emphasis);
 }

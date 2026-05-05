@@ -4,8 +4,7 @@
 
 import type { ComponentType, LazyExoticComponent } from 'react';
 import RuralLandOffer from 'calc-rural-land-offer';
-import LgsDscr from 'calc-lgs-dscr';
-import OlaminaDscr from 'calc-olamina-dscr';
+import ModularHomeDscr from 'calc-modular-home-dscr';
 import Eu5Loan from 'calc-eu5-loan';
 import WinstonSalemLvt from 'calc-winston-salem-lvt';
 import RentSell from 'calc-rent-sell';
@@ -27,16 +26,10 @@ export const calculators: readonly CalcDescriptor[] = [
     Component: RuralLandOffer,
   },
   {
-    slug: 'lgs-dscr',
-    title: 'LGS DSCR',
-    blurb: 'Debt service coverage ratio for LGS / Nationwide Homes builds.',
-    Component: LgsDscr,
-  },
-  {
-    slug: 'olamina-dscr',
-    title: 'Olamina DSCR',
-    blurb: 'Debt service coverage ratio for Olamina builds, with kit-price addons.',
-    Component: OlaminaDscr,
+    slug: 'modular-home-dscr',
+    title: 'Modular Home DSCR',
+    blurb: 'Debt service coverage ratio for modular-home build portfolios across Nationwide Homes and Momohomes.',
+    Component: ModularHomeDscr,
   },
   {
     slug: 'eu5-loan',

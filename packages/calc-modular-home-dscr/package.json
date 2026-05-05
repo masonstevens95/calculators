@@ -1,5 +1,5 @@
 {
-  "name": "calc-olamina-dscr",
+  "name": "calc-modular-home-dscr",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,9 +14,6 @@
   "dependencies": {
     "@calc/domain-utils": "workspace:*",
     "@calc/ui": "workspace:*"
-  },
-  "devDependencies": {
-    "calc-lgs-dscr": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0",

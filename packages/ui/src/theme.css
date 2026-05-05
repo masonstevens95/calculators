@@ -81,12 +81,7 @@
   --calc-brand-rural-hl-bg:      light-dark(#edf7f0, #14532d);
   --calc-brand-rural-custom-bg:  light-dark(#eef2fc, #312e81);
 
-  --calc-brand-lgs:              light-dark(#1f2937, #f1f5f9);
-
-  --calc-brand-olamina:          light-dark(#4338ca, #818cf8);
-  --calc-brand-olamina-pale:     light-dark(#ede9fe, #312e81);
-  --calc-brand-olamina-border:   light-dark(#c4b5fd, #4338ca);
-  --calc-brand-olamina-strong:   light-dark(#4338ca, #c4b5fd);
+  --calc-brand-modular:          light-dark(#1f2937, #f1f5f9);
 
   --calc-brand-eu5:              light-dark(#b45309, #f59e0b);
   --calc-brand-eu5-pale:         light-dark(#fef3c7, #422006);

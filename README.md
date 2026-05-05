@@ -27,8 +27,7 @@ and [the brainstorm origin](docs/brainstorms/2026-05-01-calculators-microfronten
 | Slug | Source HTML | Charts |
 | --- | --- | --- |
 | `rural-land-offer` | `reference/html-originals/Surry County Offer Calculator.html` | yes |
-| `lgs-dscr` | `reference/html-originals/lgs-dscr-calculator.html` | no |
-| `olamina-dscr` | `reference/html-originals/olamina-dscr-calculator.html` | no |
+| `modular-home-dscr` | `reference/html-originals/lgs-dscr-calculator.html`, `reference/html-originals/olamina-dscr-calculator.html` | no |
 | `eu5-loan` | `reference/html-originals/eu5-loan-calculator.html` | no (numeric table) |
 | `winston-salem-lvt` | `reference/html-originals/lvt-calculator.html` | yes |
 | `rent-sell` | `reference/html-originals/Birchwood Rent vs Sell Charts.html` | yes |

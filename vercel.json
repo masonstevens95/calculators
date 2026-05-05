@@ -76,6 +76,26 @@
       "source": "/embed/surry-county-offer",
       "destination": "/embed/rural-land-offer",
       "permanent": true
+    },
+    {
+      "source": "/calc/lgs-dscr",
+      "destination": "/calc/modular-home-dscr",
+      "permanent": true
+    },
+    {
+      "source": "/embed/lgs-dscr",
+      "destination": "/embed/modular-home-dscr",
+      "permanent": true
+    },
+    {
+      "source": "/calc/olamina-dscr",
+      "destination": "/calc/modular-home-dscr",
+      "permanent": true
+    },
+    {
+      "source": "/embed/olamina-dscr",
+      "destination": "/embed/modular-home-dscr",
+      "permanent": true
     }
   ],
   "rewrites": [{ "source": "/:path*", "destination": "/index.html" }]
