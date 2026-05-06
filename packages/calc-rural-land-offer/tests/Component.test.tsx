@@ -27,7 +27,25 @@ describe('<RuralLandOfferComponent />', () => {
     expect(screen.getByLabelText(/property tax/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/insurance \(/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/buyer closing costs/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/equipment budget/i)).toBeInTheDocument();
+  });
+
+  it('renders the Reserve cash expenditure section with default rows', () => {
+    render(<RuralLandOfferComponent />);
+    expect(screen.getByRole('heading', { name: /reserve cash expenditure/i })).toBeInTheDocument();
+    // Three default rows (Equipment, Stock, Repairs) — descriptions are aria-labelled
+    expect(screen.getAllByLabelText(/description for line/i)).toHaveLength(3);
+    expect(screen.getByRole('button', { name: /add line item/i })).toBeInTheDocument();
+  });
+
+  it('adding and removing expenditure rows updates the count', async () => {
+    render(<RuralLandOfferComponent />);
+    const user = userEvent.setup();
+    expect(screen.getAllByLabelText(/description for line/i)).toHaveLength(3);
+    await user.click(screen.getByRole('button', { name: /add line item/i }));
+    expect(screen.getAllByLabelText(/description for line/i)).toHaveLength(4);
+    const removeBtns = screen.getAllByRole('button', { name: /^remove/i });
+    await user.click(removeBtns[0]!);
+    expect(screen.getAllByLabelText(/description for line/i)).toHaveLength(3);
   });
 
   it('reflects the default scenario in the result section (matches domain.computeOffer)', () => {

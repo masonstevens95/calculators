@@ -8,7 +8,7 @@ import {
 } from '@calc/ui';
 import { formatCurrency, formatPercent } from '@calc/domain-utils';
 import { computeOffer, concessionLimit } from './domain';
-import type { OfferInputs, ScenarioOutput } from './domain';
+import type { Expenditure, OfferInputs, ScenarioOutput } from './domain';
 import { defaultInputs, presets } from './presets';
 import { PitiChart } from './charts/PitiChart';
 import { CashChart } from './charts/CashChart';
@@ -17,10 +17,29 @@ import styles from './Component.module.css';
 export function RuralLandOfferComponent() {
   const [inputs, setInputs] = useState<OfferInputs>(defaultInputs);
 
-  function setField<K extends keyof OfferInputs>(key: K) {
+  function setField<K extends Exclude<keyof OfferInputs, 'expenditures'>>(key: K) {
     return (next: number | '') => {
       setInputs((prev) => ({ ...prev, [key]: next === '' ? 0 : next }));
     };
+  }
+
+  function setExpenditures(updater: (prev: Expenditure[]) => Expenditure[]) {
+    setInputs((prev) => ({ ...prev, expenditures: updater(prev.expenditures) }));
+  }
+
+  function updateExpenditure(id: string, patch: Partial<Pick<Expenditure, 'label' | 'amount'>>) {
+    setExpenditures((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  }
+
+  function removeExpenditure(id: string) {
+    setExpenditures((prev) => (prev.length > 1 ? prev.filter((e) => e.id !== id) : prev));
+  }
+
+  function addExpenditure() {
+    setExpenditures((prev) => [
+      ...prev,
+      { id: `item-${Date.now()}-${prev.length}`, label: '', amount: 0 },
+    ]);
   }
 
   const computation = useMemo(() => computeOffer(inputs), [inputs]);
@@ -208,18 +227,65 @@ export function RuralLandOfferComponent() {
               />
             )}
           </FormField>
-          <FormField label="Equipment budget">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.equipment}
-                onChange={setField('equipment')}
-              />
-            )}
-          </FormField>
         </section>
       </div>
+
+      <section className={styles.card} aria-labelledby="expenditure-heading">
+        <h2 id="expenditure-heading" className={styles.cardTitle}>
+          Reserve cash expenditure
+        </h2>
+        <p className={styles.expenditureLead}>
+          What you&apos;ll do with the cash that&apos;s left after closing. Add line items for each
+          planned use; the total is subtracted from your final reserve below.
+        </p>
+        <ul className={styles.expenditureList}>
+          <li className={`${styles.expenditureRow} ${styles.expenditureHeader}`}>
+            <span>Description</span>
+            <span>Amount</span>
+            <span aria-hidden="true" />
+          </li>
+          {inputs.expenditures.map((item) => (
+            <li key={item.id} className={styles.expenditureRow}>
+              <input
+                type="text"
+                value={item.label}
+                onChange={(e) => updateExpenditure(item.id, { label: e.target.value })}
+                placeholder="Equipment, stock, repairs…"
+                className={styles.expenditureLabel}
+                aria-label={`Description for line ${item.id}`}
+              />
+              <CurrencyInput
+                value={item.amount}
+                onChange={(v) =>
+                  updateExpenditure(item.id, { amount: v === '' ? 0 : v })
+                }
+                aria-label={`Amount for ${item.label || 'line item'}`}
+              />
+              <button
+                type="button"
+                onClick={() => removeExpenditure(item.id)}
+                className={styles.expenditureRemove}
+                aria-label={`Remove ${item.label || 'line item'}`}
+                disabled={inputs.expenditures.length <= 1}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className={styles.expenditureFooter}>
+          <button
+            type="button"
+            onClick={addExpenditure}
+            className={styles.expenditureAdd}
+          >
+            + Add line item
+          </button>
+          <span className={styles.expenditureTotal}>
+            Total: <strong>{formatCurrency(r.totalExpenditure)}</strong>
+          </span>
+        </div>
+      </section>
 
       <AriaLive className={styles.results}>
         <h2 className={styles.sectionHeading}>Key Metrics</h2>
@@ -278,7 +344,10 @@ export function RuralLandOfferComponent() {
             value={`+${formatCurrency(Math.max(0, r.repairCash))}`}
           />
           <ResultDisplay label="= Total cash at closing" value={formatCurrency(r.totalCash)} />
-          <ResultDisplay label="− Equipment budget" value={`-${formatCurrency(inputs.equipment)}`} />
+          <ResultDisplay
+            label={`− Reserve expenditure (${inputs.expenditures.length} item${inputs.expenditures.length === 1 ? '' : 's'})`}
+            value={`-${formatCurrency(r.totalExpenditure)}`}
+          />
           <ResultDisplay
             label="= Final cash reserve"
             value={formatCurrency(r.reserve)}

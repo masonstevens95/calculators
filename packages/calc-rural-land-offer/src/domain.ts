@@ -28,8 +28,21 @@ export type OfferInputs = {
   insRatePct: number;
   /** Buyer closing costs, percent of offer. */
   closingPct: number;
-  /** Equipment budget, dollars. */
-  equipment: number;
+  /**
+   * Planned uses for the cash reserve after closing — equipment, stock,
+   * home repairs/improvements, etc. Sum is subtracted from totalCash to
+   * yield the final reserve.
+   */
+  expenditures: Expenditure[];
+};
+
+export type Expenditure = {
+  /** Stable identity across edits — used as React key. */
+  id: string;
+  /** Free-text label describing what the cash will be spent on. */
+  label: string;
+  /** Dollars allocated to this line item. */
+  amount: number;
 };
 
 export type ScenarioOutput = {
@@ -57,7 +70,9 @@ export type ScenarioOutput = {
   afterDown: number;
   /** afterDown + max(0, repairCash). */
   totalCash: number;
-  /** totalCash − equipment budget. */
+  /** Sum of all expenditure line-item amounts. */
+  totalExpenditure: number;
+  /** totalCash − totalExpenditure. */
   reserve: number;
   /** Conventional-loan max concession (%) at this LTV. */
   concessionLimitPct: number;
@@ -118,7 +133,6 @@ const NUMERIC_FIELDS: readonly (keyof OfferInputs)[] = [
   'taxRatePct',
   'insRatePct',
   'closingPct',
-  'equipment',
 ];
 
 export function validateOfferInputs(
@@ -133,6 +147,16 @@ export function validateOfferInputs(
     }
     if (value < 0) {
       errors[field] = `${field} must be zero or greater.`;
+    }
+  }
+  if (!Array.isArray(inputs.expenditures)) {
+    errors.expenditures = 'expenditures must be an array.';
+  } else {
+    for (const item of inputs.expenditures) {
+      if (typeof item.amount !== 'number' || !Number.isFinite(item.amount) || item.amount < 0) {
+        errors.expenditures = 'each expenditure amount must be a non-negative finite number.';
+        break;
+      }
     }
   }
   return errors;
@@ -167,7 +191,8 @@ export function computeOffer(inputs: OfferInputs): ComputeOfferResult {
 
   const afterDown = netProceeds - downAmt;
   const totalCash = afterDown + Math.max(0, repairCash);
-  const reserve = totalCash - inputs.equipment;
+  const totalExpenditure = inputs.expenditures.reduce((sum, e) => sum + e.amount, 0);
+  const reserve = totalCash - totalExpenditure;
 
   return {
     ok: true,
@@ -187,6 +212,7 @@ export function computeOffer(inputs: OfferInputs): ComputeOfferResult {
       repairCash,
       afterDown,
       totalCash,
+      totalExpenditure,
       reserve,
       concessionLimitPct: concessionLimit(ltvPct),
     },
