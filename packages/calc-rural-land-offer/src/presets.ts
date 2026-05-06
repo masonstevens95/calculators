@@ -41,5 +41,9 @@ export const defaultInputs: OfferInputs = {
   taxRatePct: 0.65,
   insRatePct: 0.45,
   closingPct: 2.5,
-  equipment: 25_000,
+  expenditures: [
+    { id: 'equipment', label: 'Equipment', amount: 25_000 },
+    { id: 'stock', label: 'Stock / livestock', amount: 0 },
+    { id: 'repairs', label: 'Home repairs / improvements', amount: 0 },
+  ],
 };

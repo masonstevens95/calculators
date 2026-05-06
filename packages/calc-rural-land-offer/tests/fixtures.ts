@@ -47,7 +47,7 @@ const DEFAULT_INPUT: OfferInputs = {
   taxRatePct: 0.65,
   insRatePct: 0.45,
   closingPct: 2.5,
-  equipment: 25_000,
+  expenditures: [{ id: 'equipment', label: 'Equipment', amount: 25_000 }],
 };
 
 export const fixtures: readonly Fixture[] = [
@@ -133,7 +133,7 @@ export const fixtures: readonly Fixture[] = [
       taxRatePct: 0,
       insRatePct: 0,
       closingPct: 0,
-      equipment: 0,
+      expenditures: [],
     },
     expected: {
       netProceeds: 0,
