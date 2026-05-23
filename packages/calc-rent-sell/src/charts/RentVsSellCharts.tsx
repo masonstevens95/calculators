@@ -102,9 +102,12 @@ export function WealthChart({ points }: WealthChartProps) {
   return <LineChart data={data} options={options} ariaLabel="Net wealth: sell vs rent over 10 years" />;
 }
 
-export type SensitivityChartProps = { points: readonly SensitivityPoint[] };
+export type SensitivityChartProps = {
+  points: readonly SensitivityPoint[];
+  holdingYears: number;
+};
 
-export function SensitivityChart({ points }: SensitivityChartProps) {
+export function SensitivityChart({ points, holdingYears }: SensitivityChartProps) {
   const rentAhead = readToken('--calc-chart-rent-ahead', 'rgba(20,184,166,0.85)');
   const sellAhead = readToken('--calc-chart-sell-ahead', 'rgba(239,68,68,0.85)');
   const data: ChartData<'bar'> = useMemo(
@@ -112,14 +115,14 @@ export function SensitivityChart({ points }: SensitivityChartProps) {
       labels: points.map((p) => `${p.appRatePct}%`),
       datasets: [
         {
-          label: 'Rent − Sell at year 10',
-          data: points.map((p) => p.rentMinusSellAt10),
-          backgroundColor: points.map((p) => (p.rentMinusSellAt10 >= 0 ? rentAhead : sellAhead)),
+          label: `Rent − Sell at year ${holdingYears}`,
+          data: points.map((p) => p.rentMinusSellAtN),
+          backgroundColor: points.map((p) => (p.rentMinusSellAtN >= 0 ? rentAhead : sellAhead)),
           borderRadius: 4,
         },
       ],
     }),
-    [points, rentAhead, sellAhead],
+    [points, rentAhead, sellAhead, holdingYears],
   );
 
   const options: ChartOptions<'bar'> = useMemo(
@@ -135,6 +138,10 @@ export function SensitivityChart({ points }: SensitivityChartProps) {
   );
 
   return (
-    <BarChart data={data} options={options} ariaLabel="Rent advantage at year 10 by home appreciation rate" />
+    <BarChart
+      data={data}
+      options={options}
+      ariaLabel={`Rent advantage at year ${holdingYears} by home appreciation rate`}
+    />
   );
 }
