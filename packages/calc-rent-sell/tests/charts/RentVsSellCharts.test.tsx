@@ -34,12 +34,13 @@ describe('Rent vs Sell charts smoke', () => {
     expect(screen.getByRole('img', { name: /net wealth: sell vs rent/i })).toBeInTheDocument();
   });
 
-  it('SensitivityChart mounts', () => {
+  it('SensitivityChart mounts with the holding-period aria-label', () => {
     render(
       <SensitivityChart
+        holdingYears={10}
         points={[
-          { appRatePct: 0, rentMinusSellAt10: -10_000 },
-          { appRatePct: 7, rentMinusSellAt10: 50_000 },
+          { appRatePct: 0, rentMinusSellAtN: -10_000 },
+          { appRatePct: 7, rentMinusSellAtN: 50_000 },
         ]}
       />,
     );

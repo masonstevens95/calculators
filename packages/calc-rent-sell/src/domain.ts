@@ -1,29 +1,58 @@
 // Pure domain for the Rent vs Sell calculator.
+//
+// Solves for the breakeven sale price S at which:
+//   sellWealth(S, N) == rentWealth(S, N)
+//
+// where N is the holding period. The sell path invests net after-tax proceeds
+// at the market rate for N years; the rent path holds the home N years,
+// reinvests annual cash flow + depreciation tax shield, then sells at the
+// appreciated price minus commission, closing, depreciation recapture, and
+// LTCG (conditional on the Section 121 window).
 
 import { RENT_SELL_DEFAULTS } from './constants';
 import type { RentSellConstants } from './constants';
 
+export type S121Mode = 'none' | 'single' | 'mfj';
+
 export type RentSellInputs = {
-  /** Monthly rent in dollars. */
+  // Property
+  mortgageBalance: number;
+  mortgageRatePct: number;
+  monthlyPI: number;
+  /** Today's sale price — focal "what-if" knob and starting home value. */
+  salePrice: number;
+  appRatePct: number;
+  // Rental
   rent: number;
-  /** Property-management mode. */
+  taxesMonthly: number;
+  insuranceMonthly: number;
+  maintenancePctYr: number;
+  vacancyPct: number;
   managed: boolean;
-  /** Annual home appreciation rate (decimal, e.g. 0.02 = 2%). */
-  appRate: number;
-  /** Annual investment return on sale proceeds (decimal). */
-  invRate: number;
-  /** Calendar year you'd move out (drives Section 121 timeline). */
+  managedPct: number;
+  accountingAnnual: number;
+  marginalTaxPct: number;
+  // Sale costs / cap gain
+  purchasePrice: number;
+  commissionPct: number;
+  closingPct: number;
+  s121: S121Mode;
+  ltcgPct: number;
+  landValue: number;
+  // Investment
+  invRatePct: number;
+  holdingYears: number;
+  // Section 121 timeline
   moveoutYear: number;
 };
 
 export type WealthPoint = { year: number; sellWealth: number; rentWealth: number };
 export type CashflowPoint = { rent: number; managedCf: number; selfCf: number };
-export type SensitivityPoint = { appRatePct: number; rentMinusSellAt10: number };
+export type SensitivityPoint = { appRatePct: number; rentMinusSellAtN: number };
 export type Section121 = {
   moveoutYear: number;
   deadlineYear: number;
   yearsLeft: number;
-  /** 0–100. */
   progressPct: number;
   urgency: 'safe' | 'warning' | 'critical';
   message: string;
@@ -33,11 +62,15 @@ export type RentSellOutput = {
   fixedCarrying: number;
   monthlyCashflow: number;
   breakEvenRent: number;
+  /** Breakeven sale price S* such that sellWealth(S*) == rentWealth(S*). */
+  breakevenSalePrice: number | null;
+  /** Whether the current `salePrice` favors selling at year N. */
+  sellBeatsRent: boolean;
+  /** sellWealth(salePrice, N) − rentWealth(salePrice, N). */
+  sellMinusRentAtN: number;
   cashflowVsRent: CashflowPoint[];
   wealthOverTime: WealthPoint[];
   sensitivity: SensitivityPoint[];
-  rentBeatsSellAt10: boolean;
-  rentVsSellAt10Delta: number;
   section121: Section121;
 };
 
@@ -45,75 +78,52 @@ export type ComputeRentSellResult =
   | { ok: true; result: RentSellOutput }
   | { ok: false; errors: Partial<Record<keyof RentSellInputs, string>> };
 
-export function fixedCarryingCost(c: RentSellConstants = RENT_SELL_DEFAULTS): number {
-  return c.monthlyPI + c.taxes + c.insurance + c.maintenance;
+// ---------- carrying-cost & cash-flow primitives ----------
+
+export function fixedCarryingCost(inputs: RentSellInputs): number {
+  const maintMonthly = (inputs.maintenancePctYr / 100) * inputs.salePrice / 12;
+  return inputs.monthlyPI + inputs.taxesMonthly + inputs.insuranceMonthly + maintMonthly;
 }
 
-/** Net monthly cash flow at a given rent and management mode. */
-export function monthlyCashflow(
-  rent: number,
-  managed: boolean,
-  c: RentSellConstants = RENT_SELL_DEFAULTS,
-): number {
-  const mgmt = managed ? (c.managedPct / 100) * rent : 0;
-  const vacancy = (c.vacancyPct / 100) * rent;
-  return rent - fixedCarryingCost(c) - mgmt - vacancy;
+export function monthlyCashflow(inputs: RentSellInputs): number {
+  const mgmt = inputs.managed ? (inputs.managedPct / 100) * inputs.rent : 0;
+  const vacancy = (inputs.vacancyPct / 100) * inputs.rent;
+  const accountingMonthly = inputs.accountingAnnual / 12;
+  return inputs.rent - fixedCarryingCost(inputs) - mgmt - vacancy - accountingMonthly;
 }
 
-/** Break-even rent (cashflow = 0) given the management mode. */
-export function breakEvenRent(
-  managed: boolean,
-  c: RentSellConstants = RENT_SELL_DEFAULTS,
-): number {
-  const retainedRate = managed
-    ? 1 - c.managedPct / 100 - c.vacancyPct / 100
-    : 1 - c.vacancyPct / 100;
-  return retainedRate > 0 ? fixedCarryingCost(c) / retainedRate : Number.POSITIVE_INFINITY;
+export function breakEvenRent(inputs: RentSellInputs): number {
+  const retainedRate = inputs.managed
+    ? 1 - inputs.managedPct / 100 - inputs.vacancyPct / 100
+    : 1 - inputs.vacancyPct / 100;
+  if (retainedRate <= 0) return Number.POSITIVE_INFINITY;
+  const fixed = fixedCarryingCost(inputs) + inputs.accountingAnnual / 12;
+  return fixed / retainedRate;
 }
 
-/** Remaining mortgage balance after `months` of standard amortization. */
-export function remainingBalance(
-  months: number,
-  c: RentSellConstants = RENT_SELL_DEFAULTS,
-): number {
-  if (months <= 0) return c.balance;
-  let balance = c.balance;
-  const monthlyRate = c.rate / 12;
+export function remainingBalance(months: number, inputs: RentSellInputs): number {
+  if (months <= 0) return inputs.mortgageBalance;
+  let balance = inputs.mortgageBalance;
+  const monthlyRate = inputs.mortgageRatePct / 100 / 12;
   for (let m = 0; m < months; m++) {
-    const principalPaid = c.monthlyPI - balance * monthlyRate;
+    const principalPaid = inputs.monthlyPI - balance * monthlyRate;
     balance -= principalPaid;
     if (balance <= 0) return 0;
   }
   return Math.max(0, balance);
 }
 
-const NUMERIC_FIELDS: readonly (keyof RentSellInputs)[] = [
-  'rent',
-  'appRate',
-  'invRate',
-  'moveoutYear',
-];
+// ---------- Section 121 helpers ----------
 
-export function validateRentSellInputs(
-  inputs: RentSellInputs,
-): Partial<Record<keyof RentSellInputs, string>> {
-  const errors: Partial<Record<keyof RentSellInputs, string>> = {};
-  for (const field of NUMERIC_FIELDS) {
-    const value = inputs[field];
-    if (typeof value !== 'number' || !Number.isFinite(value)) {
-      errors[field] = `${field} must be a finite number.`;
-    }
-  }
-  if (inputs.rent < 0) errors.rent = 'rent must be zero or greater.';
-  if (typeof inputs.managed !== 'boolean') {
-    errors.managed = 'managed must be true or false.';
-  }
-  return errors;
+function s121ExclusionAmount(mode: S121Mode, c: RentSellConstants): number {
+  if (mode === 'single') return c.s121Single;
+  if (mode === 'mfj') return c.s121MFJ;
+  return 0;
 }
 
 function computeSection121(
   moveoutYear: number,
-  c: RentSellConstants = RENT_SELL_DEFAULTS,
+  c: RentSellConstants,
 ): Section121 {
   const deadlineYear = moveoutYear + 3;
   const yearsLeft = deadlineYear - c.currentYear;
@@ -135,6 +145,167 @@ function computeSection121(
   return { moveoutYear, deadlineYear, yearsLeft, progressPct, urgency, message };
 }
 
+// ---------- Sell-and-invest path ----------
+
+function sellPathWealth(
+  salePrice: number,
+  inputs: RentSellInputs,
+  years: number,
+  c: RentSellConstants,
+): number {
+  const commission = inputs.commissionPct / 100;
+  const closing = inputs.closingPct / 100;
+  const ltcg = inputs.ltcgPct / 100;
+  const grossProceeds = salePrice * (1 - commission - closing) - inputs.mortgageBalance;
+  const capitalGain = salePrice - inputs.purchasePrice;
+  const exclusion = s121ExclusionAmount(inputs.s121, c);
+  const taxableGain = Math.max(0, capitalGain - exclusion);
+  const afterTaxProceeds = grossProceeds - taxableGain * ltcg;
+  if (years <= 0) return afterTaxProceeds;
+  const r = inputs.invRatePct / 100;
+  const fv = afterTaxProceeds * Math.pow(1 + r, years);
+  // Liquidate stock at year N: LTCG only on the gain over the basis (afterTaxProceeds).
+  const stockGain = Math.max(0, fv - afterTaxProceeds);
+  return fv - stockGain * ltcg;
+}
+
+// ---------- Keep-as-rental path ----------
+
+function rentPathWealth(
+  startValue: number,
+  inputs: RentSellInputs,
+  years: number,
+  c: RentSellConstants,
+): number {
+  const cfMonthly = monthlyCashflow({ ...inputs, salePrice: startValue });
+  const cfAnnual = cfMonthly * 12;
+  const annualRent = inputs.rent * 12;
+  const marginalRate = inputs.marginalTaxPct / 100;
+  const invRate = inputs.invRatePct / 100;
+  const appRate = inputs.appRatePct / 100;
+  const depreciableBasis = Math.max(0, startValue - inputs.landValue);
+  const annualDepreciation = depreciableBasis / c.depreciationYears;
+  // Tax shield capped at the rental income for the year (proxy for passive-activity limit).
+  const annualTaxShield = Math.min(annualDepreciation, annualRent) * marginalRate;
+
+  if (years <= 0) return startValue - inputs.mortgageBalance;
+
+  // Reinvested cash-flow + tax-shield stack, year y compounds for (N-y) years.
+  let reinvestedStack = 0;
+  for (let y = 1; y <= years; y++) {
+    const contribution = cfAnnual + annualTaxShield;
+    reinvestedStack += contribution * Math.pow(1 + invRate, years - y);
+  }
+
+  const finalHomeValue = startValue * Math.pow(1 + appRate, years);
+  const commission = inputs.commissionPct / 100;
+  const closing = inputs.closingPct / 100;
+  const grossSale = finalHomeValue * (1 - commission - closing);
+  const remainingDebt = remainingBalance(years * 12, inputs);
+  const accumulatedDepreciation = Math.min(depreciableBasis, annualDepreciation * years);
+  const recapture = accumulatedDepreciation * (c.recapturePct / 100);
+
+  // Section 121 exclusion applies only if sold within 3 years of move-out.
+  const sellCalendarYear = c.currentYear + years;
+  const s121Available =
+    inputs.s121 !== 'none' && sellCalendarYear <= inputs.moveoutYear + 3;
+  const exclusion = s121Available ? s121ExclusionAmount(inputs.s121, c) : 0;
+  const capitalGain = Math.max(0, finalHomeValue - inputs.purchasePrice);
+  const taxableGain = Math.max(0, capitalGain - exclusion);
+  const ltcg = taxableGain * (inputs.ltcgPct / 100);
+
+  const afterTaxSale = grossSale - remainingDebt - recapture - ltcg;
+  return afterTaxSale + reinvestedStack;
+}
+
+// ---------- Breakeven solver (bisection) ----------
+
+function diffAt(price: number, inputs: RentSellInputs, c: RentSellConstants): number {
+  const N = Math.max(0, Math.floor(inputs.holdingYears));
+  return (
+    sellPathWealth(price, { ...inputs, salePrice: price }, N, c) -
+    rentPathWealth(price, { ...inputs, salePrice: price }, N, c)
+  );
+}
+
+export function solveBreakevenSalePrice(
+  inputs: RentSellInputs,
+  c: RentSellConstants = RENT_SELL_DEFAULTS,
+): number | null {
+  let lo = c.solverMinPrice;
+  let hi = c.solverMaxPrice;
+  const fLo = diffAt(lo, inputs, c);
+  const fHi = diffAt(hi, inputs, c);
+  if (!Number.isFinite(fLo) || !Number.isFinite(fHi)) return null;
+  if (fLo === 0) return lo;
+  if (fHi === 0) return hi;
+  if (Math.sign(fLo) === Math.sign(fHi)) return null; // no sign change in range
+
+  for (let i = 0; i < 80; i++) {
+    const mid = (lo + hi) / 2;
+    const fMid = diffAt(mid, inputs, c);
+    if (Math.abs(fMid) < 1 || hi - lo < 1) return Math.round(mid);
+    if (Math.sign(fMid) === Math.sign(fLo)) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return Math.round((lo + hi) / 2);
+}
+
+// ---------- Validation ----------
+
+const NUMERIC_FIELDS: readonly (keyof RentSellInputs)[] = [
+  'mortgageBalance',
+  'mortgageRatePct',
+  'monthlyPI',
+  'salePrice',
+  'appRatePct',
+  'rent',
+  'taxesMonthly',
+  'insuranceMonthly',
+  'maintenancePctYr',
+  'vacancyPct',
+  'managedPct',
+  'accountingAnnual',
+  'marginalTaxPct',
+  'purchasePrice',
+  'commissionPct',
+  'closingPct',
+  'ltcgPct',
+  'landValue',
+  'invRatePct',
+  'holdingYears',
+  'moveoutYear',
+];
+
+export function validateRentSellInputs(
+  inputs: RentSellInputs,
+): Partial<Record<keyof RentSellInputs, string>> {
+  const errors: Partial<Record<keyof RentSellInputs, string>> = {};
+  for (const field of NUMERIC_FIELDS) {
+    const value = inputs[field];
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      errors[field] = `${field} must be a finite number.`;
+    }
+  }
+  if (inputs.rent < 0) errors.rent = 'rent must be zero or greater.';
+  if (inputs.salePrice <= 0) errors.salePrice = 'salePrice must be greater than zero.';
+  if (inputs.holdingYears < 0 || inputs.holdingYears > 50) {
+    errors.holdingYears = 'holdingYears must be between 0 and 50.';
+  }
+  if (typeof inputs.managed !== 'boolean') {
+    errors.managed = 'managed must be true or false.';
+  }
+  if (inputs.s121 !== 'none' && inputs.s121 !== 'single' && inputs.s121 !== 'mfj') {
+    errors.s121 = 's121 must be none, single, or mfj.';
+  }
+  return errors;
+}
+
+// ---------- Top-level entry ----------
+
 export function computeRentSell(
   inputs: RentSellInputs,
   c: RentSellConstants = RENT_SELL_DEFAULTS,
@@ -144,45 +315,44 @@ export function computeRentSell(
     return { ok: false, errors };
   }
 
-  const fixedCarrying = fixedCarryingCost(c);
-  const cf = monthlyCashflow(inputs.rent, inputs.managed, c);
-  const beR = breakEvenRent(inputs.managed, c);
+  const N = Math.max(0, Math.floor(inputs.holdingYears));
+  const fixedCarrying = fixedCarryingCost(inputs);
+  const cf = monthlyCashflow(inputs);
+  const beR = breakEvenRent(inputs);
 
   // Chart 1: cashflow over rent range
   const cashflowVsRent: CashflowPoint[] = [];
   for (let r = 1200; r <= 3200; r += 50) {
     cashflowVsRent.push({
       rent: r,
-      managedCf: monthlyCashflow(r, true, c),
-      selfCf: monthlyCashflow(r, false, c),
+      managedCf: monthlyCashflow({ ...inputs, rent: r, managed: true }),
+      selfCf: monthlyCashflow({ ...inputs, rent: r, managed: false }),
     });
   }
 
-  // Chart 2: wealth over 10 years
+  // Chart 2: wealth over the holding period using full sell- and rent-path math
   const wealthOverTime: WealthPoint[] = [];
-  let cumCf = 0;
-  for (let yr = 0; yr <= 10; yr++) {
-    const sellWealth = c.netProceeds * Math.pow(1 + inputs.invRate, yr);
-    const homeVal = c.homeValue * Math.pow(1 + inputs.appRate, yr);
-    const equity = homeVal - remainingBalance(yr * 12, c);
-    cumCf += cf * 12;
-    const rentWealth = equity + cumCf;
-    wealthOverTime.push({ year: yr, sellWealth, rentWealth });
+  for (let yr = 0; yr <= N; yr++) {
+    wealthOverTime.push({
+      year: yr,
+      sellWealth: sellPathWealth(inputs.salePrice, inputs, yr, c),
+      rentWealth: rentPathWealth(inputs.salePrice, inputs, yr, c),
+    });
   }
 
-  // Chart 3: sensitivity sweep — appreciation rate 0..7%
+  // Chart 3: rent minus sell at year N as appreciation rate sweeps 0..7%
   const sensitivity: SensitivityPoint[] = [];
-  const sellAt10 = c.netProceeds * Math.pow(1 + inputs.invRate, 10);
   for (let ap = 0; ap <= 7; ap++) {
-    const homeVal10 = c.homeValue * Math.pow(1 + ap / 100, 10);
-    const equity10 = homeVal10 - remainingBalance(120, c);
-    const rentAt10 = equity10 + cf * 12 * 10;
-    sensitivity.push({ appRatePct: ap, rentMinusSellAt10: rentAt10 - sellAt10 });
+    const sweepInputs = { ...inputs, appRatePct: ap };
+    const sell = sellPathWealth(inputs.salePrice, sweepInputs, N, c);
+    const rent = rentPathWealth(inputs.salePrice, sweepInputs, N, c);
+    sensitivity.push({ appRatePct: ap, rentMinusSellAtN: rent - sell });
   }
 
+  const breakeven = solveBreakevenSalePrice(inputs, c);
   const last = wealthOverTime[wealthOverTime.length - 1]!;
-  const rentVsSellAt10Delta = last.rentWealth - last.sellWealth;
-  const rentBeatsSellAt10 = rentVsSellAt10Delta > 0;
+  const sellMinusRentAtN = last.sellWealth - last.rentWealth;
+  const sellBeatsRent = sellMinusRentAtN > 0;
 
   return {
     ok: true,
@@ -190,11 +360,12 @@ export function computeRentSell(
       fixedCarrying,
       monthlyCashflow: cf,
       breakEvenRent: beR,
+      breakevenSalePrice: breakeven,
+      sellBeatsRent,
+      sellMinusRentAtN,
       cashflowVsRent,
       wealthOverTime,
       sensitivity,
-      rentBeatsSellAt10,
-      rentVsSellAt10Delta,
       section121: computeSection121(inputs.moveoutYear, c),
     },
   };

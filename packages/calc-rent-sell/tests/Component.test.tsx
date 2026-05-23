@@ -17,14 +17,23 @@ describe('<RentSellComponent />', () => {
     expect(screen.queryByText(/Inputs don't leave your browser/i)).not.toBeInTheDocument();
   });
 
-  it('renders all five inputs', () => {
+  it('renders core property + rental inputs', () => {
     render(<RentSellComponent />);
-    // "Monthly rent" exact match (a stat label also contains "rent" as substring)
+    expect(screen.getByLabelText('Sale price today')).toBeInTheDocument();
+    expect(screen.getByLabelText('Purchase price')).toBeInTheDocument();
+    expect(screen.getByLabelText('Mortgage balance')).toBeInTheDocument();
+    expect(screen.getByLabelText(/mortgage rate/i)).toBeInTheDocument();
     expect(screen.getByLabelText('Monthly rent')).toBeInTheDocument();
     expect(screen.getByLabelText(/management mode/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/annual appreciation/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/annual investment return/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/investment return/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/holding period/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/move-out year/i)).toBeInTheDocument();
+  });
+
+  it('renders the Section 121 exclusion selector', () => {
+    render(<RentSellComponent />);
+    expect(screen.getByLabelText(/section 121/i)).toBeInTheDocument();
   });
 
   it('renders all three charts with descriptive aria-labels', () => {
@@ -38,9 +47,16 @@ describe('<RentSellComponent />', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the Breakeven section', () => {
+    render(<RentSellComponent />);
+    expect(screen.getByRole('heading', { name: /breakeven/i })).toBeInTheDocument();
+  });
+
   it('renders the Section 121 timeline block', () => {
     render(<RentSellComponent />);
-    expect(screen.getByRole('heading', { name: /section 121/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /section 121 capital-gains window/i }),
+    ).toBeInTheDocument();
   });
 
   it('routes results through aria-live', () => {
