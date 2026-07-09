@@ -3,15 +3,18 @@ import { LineChart, BarChart, readToken } from '@calc/charts';
 import type { ChartData, ChartOptions } from 'chart.js';
 import type { AnnualBreakdownPoint, CashFlowPoint, SensitivityPoint } from '../domain';
 
-export type CashFlowChartProps = { points: readonly CashFlowPoint[] };
+export type CashFlowChartProps = {
+  points: readonly CashFlowPoint[];
+  indexFundPoints: readonly CashFlowPoint[];
+};
 
-export function CashFlowChart({ points }: CashFlowChartProps) {
+export function CashFlowChart({ points, indexFundPoints }: CashFlowChartProps) {
   const data: ChartData<'line'> = useMemo(
     () => ({
       labels: points.map((p) => `Yr ${p.year}`),
       datasets: [
         {
-          label: 'Cumulative cash flow',
+          label: 'Solar + battery',
           data: points.map((p) => p.cumulative),
           borderColor: readToken('--calc-chart-solar-cumulative', '#f59e0b'),
           backgroundColor: 'rgba(245,158,11,0.07)',
@@ -19,6 +22,15 @@ export function CashFlowChart({ points }: CashFlowChartProps) {
           pointRadius: 0,
           borderWidth: 2,
           fill: true,
+        },
+        {
+          label: 'Index fund alternative',
+          data: indexFundPoints.map((p) => p.cumulative),
+          borderColor: readToken('--calc-chart-solar-indexfund', '#8b5cf6'),
+          borderDash: [6, 3],
+          pointRadius: 0,
+          borderWidth: 2,
+          fill: false,
         },
         {
           label: 'Breakeven',
@@ -31,7 +43,7 @@ export function CashFlowChart({ points }: CashFlowChartProps) {
         },
       ],
     }),
-    [points],
+    [points, indexFundPoints],
   );
 
   const options: ChartOptions<'line'> = useMemo(
@@ -46,7 +58,13 @@ export function CashFlowChart({ points }: CashFlowChartProps) {
     [],
   );
 
-  return <LineChart data={data} options={options} ariaLabel="Cumulative net cash flow over the analysis period" />;
+  return (
+    <LineChart
+      data={data}
+      options={options}
+      ariaLabel="Cumulative net cash flow: solar and battery vs an index fund alternative"
+    />
+  );
 }
 
 export type AnnualBreakdownChartProps = { points: readonly AnnualBreakdownPoint[] };

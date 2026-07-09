@@ -17,10 +17,17 @@ describe('Solar + Battery charts smoke', () => {
           { year: 5, cumulative: -5_000, net: 3_000 },
           { year: 10, cumulative: 8_000, net: 3_500 },
         ]}
+        indexFundPoints={[
+          { year: 0, cumulative: 0, net: 0 },
+          { year: 5, cumulative: 8_000, net: 1_400 },
+          { year: 10, cumulative: 19_000, net: 2_000 },
+        ]}
       />,
     );
     expect(
-      screen.getByRole('img', { name: /cumulative net cash flow over the analysis period/i }),
+      screen.getByRole('img', {
+        name: /cumulative net cash flow: solar and battery vs an index fund alternative/i,
+      }),
     ).toBeInTheDocument();
   });
 

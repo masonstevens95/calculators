@@ -7,7 +7,7 @@ import {
   PercentInput,
   ResultDisplay,
 } from '@calc/ui';
-import { formatCurrency, formatPercent } from '@calc/domain-utils';
+import { formatCurrency, formatNumber, formatPercent } from '@calc/domain-utils';
 import { computeSolarBattery } from './domain';
 import type { BatteryCostMode, FinanceMode, SoftCostMode, SolarBatteryInputs, SolarCostMode } from './domain';
 import { SOLAR_BATTERY_INITIAL_INPUTS } from './constants';
@@ -299,6 +299,16 @@ export function SolarBatteryComponent() {
               </FormField>
             </>
           )}
+          <FormField label="Index fund return (alt. investment)">
+            {({ id, describedBy }) => (
+              <PercentInput
+                id={id}
+                aria-describedby={describedBy}
+                value={inputs.indexFundReturnPct}
+                onChange={setNum('indexFundReturnPct')}
+              />
+            )}
+          </FormField>
         </div>
       </section>
 
@@ -411,6 +421,14 @@ export function SolarBatteryComponent() {
             incentives · upfront cash{' '}
             <strong>{formatCurrency(r.upfrontCash, { maximumFractionDigits: 0 })}</strong>.
           </p>
+          <p className={styles.headlineSub}>
+            That same {formatCurrency(r.upfrontCash, { maximumFractionDigits: 0 })} in an index
+            fund at {inputs.indexFundReturnPct}%/yr would gain{' '}
+            <strong>{formatCurrency(r.indexFundGain, { maximumFractionDigits: 0 })}</strong> over{' '}
+            {inputs.analysisYears} years —{' '}
+            <strong>{r.solarBeatsIndexFund ? 'solar + battery wins' : 'the index fund wins'}</strong>{' '}
+            by {formatCurrency(Math.abs(r.lifetimeNetProfit - r.indexFundGain), { maximumFractionDigits: 0 })}.
+          </p>
         </div>
 
         <h2 className={styles.sectionHeading}>Stats</h2>
@@ -436,11 +454,21 @@ export function SolarBatteryComponent() {
             value={formatPercent(r.roiPct / 100, { fractionDigits: 0 })}
             detail={`${formatCurrency(r.lifetimeNetProfit, { maximumFractionDigits: 0 })} net profit`}
           />
+          <ResultDisplay
+            label="Est. annual production"
+            value={`${formatNumber(r.annualProductionKwh)} kWh/yr`}
+            detail={`${inputs.solarSizeKw} kW array`}
+          />
+          <ResultDisplay
+            label={`Index fund alternative (${inputs.indexFundReturnPct}%)`}
+            value={formatCurrency(r.indexFundGain, { maximumFractionDigits: 0 })}
+            detail={r.solarBeatsIndexFund ? 'solar + battery wins' : 'index fund wins'}
+          />
         </div>
 
         <h2 className={styles.sectionHeading}>Cumulative Cash Flow</h2>
         <div className={styles.chartWrap}>
-          <CashFlowChart points={r.cashFlowOverTime} />
+          <CashFlowChart points={r.cashFlowOverTime} indexFundPoints={r.indexFundOverTime} />
         </div>
 
         <h2 className={styles.sectionHeading}>Annual Savings vs Cost</h2>

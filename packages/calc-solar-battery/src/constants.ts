@@ -17,7 +17,18 @@ export const SOLAR_BATTERY_DEFAULTS: SolarBatteryConstants = {
   breakdownYears: 15,
 };
 
-/** Initial input values — a realistic mid-size residential system, fully editable. */
+/**
+ * Initial input values — a realistic mid-size residential system, fully editable.
+ *
+ * Energy-usage defaults are sourced for an ~1,800 sqft house in Hillsborough, NC
+ * (Duke Energy Progress territory, the incorporated town's utility):
+ *  - annualUsageKwh: ~12,000 kWh/yr — NC household average runs ~11,900 kWh/yr
+ *    (EIA), higher than the national average due to electric heat/AC load.
+ *  - utilityRatePerKwh: $0.135/kWh — Duke Energy Progress all-in residential
+ *    rate is ~12.5-14c/kWh as of 2026.
+ *  - productionPerKw: 1,500 kWh/kW/yr — central NC (Raleigh-Durham-area) solar
+ *    yield; scales automatically with solarSizeKw via annualProductionKwh().
+ */
 export const SOLAR_BATTERY_INITIAL_INPUTS = {
   // Solar
   solarSizeKw: 8,
@@ -40,11 +51,12 @@ export const SOLAR_BATTERY_INITIAL_INPUTS = {
   downPaymentPct: 20,
   loanRatePct: 6.99,
   loanTermYears: 15,
-  // Energy / usage
-  annualUsageKwh: 11_000,
-  utilityRatePerKwh: 0.18,
+  indexFundReturnPct: 7,
+  // Energy / usage — Hillsborough, NC (see comment above)
+  annualUsageKwh: 12_000,
+  utilityRatePerKwh: 0.135,
   rateEscalationPct: 3,
-  productionPerKw: 1_400,
+  productionPerKw: 1_500,
   selfConsumptionPct: 75,
   netMeteringPct: 100,
   systemDegradationPct: 0.5,

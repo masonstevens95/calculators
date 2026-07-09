@@ -12,6 +12,7 @@ import {
   annualProductionKwh,
   annualBillSavings,
   cashFlowSeries,
+  indexFundSeries,
   solvePaybackYears,
   sensitivitySweep,
   validateSolarBatteryInputs,
@@ -205,6 +206,31 @@ describe('cashFlowSeries', () => {
   });
 });
 
+describe('indexFundSeries', () => {
+  it('starts at 0 gain in year 0 and compounds the upfront cash at the index fund rate', () => {
+    const { netCost } = systemCost(DEFAULTS);
+    const { upfrontCash } = financeDetails(DEFAULTS, netCost);
+    const series = indexFundSeries(DEFAULTS);
+    expect(series[0]).toEqual({ year: 0, cumulative: 0, net: 0 });
+
+    const r = DEFAULTS.indexFundReturnPct / 100;
+    const expectedFinalGain = upfrontCash * Math.pow(1 + r, DEFAULTS.analysisYears) - upfrontCash;
+    expect(series[series.length - 1]!.cumulative).toBeCloseTo(expectedFinalGain, DOLLAR);
+  });
+
+  it('has analysisYears + 1 points, matching cashFlowSeries', () => {
+    const series = indexFundSeries(DEFAULTS);
+    expect(series).toHaveLength(DEFAULTS.analysisYears + 1);
+  });
+
+  it('gain is monotonically increasing for a positive return', () => {
+    const series = indexFundSeries(DEFAULTS);
+    for (let i = 1; i < series.length; i++) {
+      expect(series[i]!.cumulative).toBeGreaterThan(series[i - 1]!.cumulative);
+    }
+  });
+});
+
 describe('solvePaybackYears', () => {
   it('finds a fractional payback year for the default scenario', () => {
     const payback = solvePaybackYears(DEFAULTS);
@@ -319,5 +345,22 @@ describe('computeSolarBattery (default scenario)', () => {
     if (!cashResult.ok) throw new Error('expected ok result');
     expect(cashResult.result.annualDebtService).toBe(0);
     expect(cashResult.result.upfrontCash).toBeCloseTo(cashResult.result.netCost, DOLLAR);
+  });
+
+  it('annualProductionKwh scales automatically with solar array size', () => {
+    const base = computeSolarBattery(DEFAULTS);
+    const doubled = computeSolarBattery({ ...DEFAULTS, solarSizeKw: DEFAULTS.solarSizeKw * 2 });
+    if (!base.ok || !doubled.ok) throw new Error('expected ok results');
+    expect(doubled.result.annualProductionKwh).toBeCloseTo(base.result.annualProductionKwh * 2, DOLLAR);
+  });
+
+  it('indexFundGain matches the final index fund series value, and the verdict compares it to lifetimeNetProfit', () => {
+    const result = computeSolarBattery(DEFAULTS);
+    if (!result.ok) throw new Error('expected ok result');
+    const series = indexFundSeries(DEFAULTS);
+    expect(result.result.indexFundGain).toBeCloseTo(series[series.length - 1]!.cumulative, DOLLAR);
+    expect(result.result.solarBeatsIndexFund).toBe(
+      result.result.lifetimeNetProfit > result.result.indexFundGain,
+    );
   });
 });

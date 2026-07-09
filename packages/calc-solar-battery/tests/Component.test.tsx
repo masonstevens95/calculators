@@ -81,7 +81,9 @@ describe('<SolarBatteryComponent />', () => {
   it('renders all three charts with descriptive aria-labels', () => {
     render(<SolarBatteryComponent />);
     expect(
-      screen.getByRole('img', { name: /cumulative net cash flow over the analysis period/i }),
+      screen.getByRole('img', {
+        name: /cumulative net cash flow: solar and battery vs an index fund alternative/i,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('img', { name: /annual bill savings vs loan payment/i }),
@@ -94,6 +96,18 @@ describe('<SolarBatteryComponent />', () => {
   it('renders the Payback section', () => {
     render(<SolarBatteryComponent />);
     expect(screen.getByRole('heading', { name: /payback/i })).toBeInTheDocument();
+  });
+
+  it('renders the index fund return input and compares it in the payback headline', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByLabelText(/index fund return/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/index fund/i).length).toBeGreaterThan(1);
+  });
+
+  it('renders the annual production and index fund stats', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByText('Est. annual production')).toBeInTheDocument();
+    expect(screen.getByText(/index fund alternative/i)).toBeInTheDocument();
   });
 
   it('routes results through aria-live', () => {
