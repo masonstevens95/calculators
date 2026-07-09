@@ -7,7 +7,7 @@ export default mergeConfig(
   defineConfig({
     plugins: [react()],
     test: {
-      name: 'calc-solar-battery-generator',
+      name: 'calc-solar-battery',
       environment: 'jsdom',
       setupFiles: ['./tests/setup.ts'],
       include: ['tests/**/*.test.{ts,tsx}'],

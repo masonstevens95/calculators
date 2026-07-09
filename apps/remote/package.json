@@ -22,7 +22,7 @@
     "calc-modular-home-dscr": "workspace:*",
     "calc-rent-sell": "workspace:*",
     "calc-rural-land-offer": "workspace:*",
-    "calc-solar-battery-generator": "workspace:*",
+    "calc-solar-battery": "workspace:*",
     "calc-winston-salem-lvt": "workspace:*",
     "react-router-dom": "^7.1.0"
   },
