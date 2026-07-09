@@ -81,6 +81,12 @@ export function AnnualBreakdownChart({ points }: AnnualBreakdownChartProps) {
           borderRadius: 3,
         },
         {
+          label: 'TOU arbitrage',
+          data: points.map((p) => p.arbitrageValue),
+          backgroundColor: readToken('--calc-chart-solar-arbitrage', '#d97706'),
+          borderRadius: 3,
+        },
+        {
           label: 'Loan payment',
           data: points.map((p) => -p.debtService),
           backgroundColor: readToken('--calc-chart-solar-debt', '#64748b'),
@@ -105,7 +111,11 @@ export function AnnualBreakdownChart({ points }: AnnualBreakdownChartProps) {
   );
 
   return (
-    <BarChart data={data} options={options} ariaLabel="Annual bill savings vs loan payment" />
+    <BarChart
+      data={data}
+      options={options}
+      ariaLabel="Annual bill savings vs TOU arbitrage and loan payment"
+    />
   );
 }
 

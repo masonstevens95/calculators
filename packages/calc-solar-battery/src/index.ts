@@ -9,6 +9,7 @@ export {
   financeDetails,
   annualProductionKwh,
   annualBillSavings,
+  annualArbitrageValue,
   cashFlowSeries,
   indexFundSeries,
   annualBreakdownSeries,

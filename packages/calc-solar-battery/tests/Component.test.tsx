@@ -98,7 +98,7 @@ describe('<SolarBatteryComponent />', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('img', { name: /annual bill savings vs loan payment/i }),
+      screen.getByRole('img', { name: /annual bill savings vs tou arbitrage and loan payment/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('img', { name: /payback period by utility rate escalation/i }),
@@ -148,6 +148,26 @@ describe('<SolarBatteryComponent />', () => {
     expect(solarSize.value).not.toBe(originalSolarSize);
     expect(Number(solarSize.value)).toBeGreaterThan(0);
     expect(Number(batteryCapacity.value)).toBeGreaterThan(0);
+  });
+
+  it('TOU arbitrage is off by default and hides its rate/efficiency fields', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByLabelText('TOU arbitrage')).toHaveValue('off');
+    expect(screen.queryByLabelText(/off-peak charge rate/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/on-peak avoided rate/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/round-trip efficiency/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Battery arbitrage (Yr 1)')).not.toBeInTheDocument();
+  });
+
+  it('enabling TOU arbitrage reveals its inputs and the arbitrage stat', () => {
+    render(<SolarBatteryComponent />);
+    fireEvent.change(screen.getByLabelText('TOU arbitrage'), { target: { value: 'on' } });
+
+    expect(screen.getByLabelText(/off-peak charge rate/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/on-peak avoided rate/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/round-trip efficiency/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/arbitrage days\/year/i)).toBeInTheDocument();
+    expect(screen.getByText('Battery arbitrage (Yr 1)')).toBeInTheDocument();
   });
 
   it('suggests a larger solar array for Total coverage than for Minimal', () => {
