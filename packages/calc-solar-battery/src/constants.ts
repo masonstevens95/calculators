@@ -19,12 +19,20 @@ export const SOLAR_BATTERY_DEFAULTS: SolarBatteryConstants = {
 
 /** Initial input values — a realistic mid-size residential system, fully editable. */
 export const SOLAR_BATTERY_INITIAL_INPUTS = {
-  // System & cost
+  // Solar
   solarSizeKw: 8,
+  solarCostMode: 'perWatt' as const,
   solarCostPerWatt: 2.75,
+  solarTotalCost: 22_000,
+  // Battery
   batteryCapacityKwh: 13.5,
+  batteryCostMode: 'perKwh' as const,
   batteryCostPerKwh: 700,
+  batteryTotalCost: 9_450,
+  // Costs & incentives
+  softCostsMode: 'percent' as const,
   softCostsPct: 10,
+  softCostsFlat: 3_145,
   federalItcPct: 30,
   stateRebate: 1_000,
   // Financing
