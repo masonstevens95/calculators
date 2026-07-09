@@ -21,6 +21,7 @@ describe('federation public-API contract for calc-solar-battery', () => {
     expect(typeof mod.computeSolarBattery).toBe('function');
     expect(typeof mod.systemCost).toBe('function');
     expect(typeof mod.solvePaybackYears).toBe('function');
+    expect(typeof mod.indexFundSeries).toBe('function');
     expect(typeof mod.validateSolarBatteryInputs).toBe('function');
     expect(typeof mod.SOLAR_BATTERY_DEFAULTS).toBe('object');
   });

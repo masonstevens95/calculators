@@ -10,6 +10,7 @@ export {
   annualProductionKwh,
   annualBillSavings,
   cashFlowSeries,
+  indexFundSeries,
   annualBreakdownSeries,
   solvePaybackYears,
   sensitivitySweep,

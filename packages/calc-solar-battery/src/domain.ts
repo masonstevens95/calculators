@@ -37,6 +37,8 @@ export type SolarBatteryInputs = {
   downPaymentPct: number;
   loanRatePct: number;
   loanTermYears: number;
+  /** Annual return assumed for investing the upfront cash in an index fund instead. */
+  indexFundReturnPct: number;
   // Energy / usage
   annualUsageKwh: number;
   utilityRatePerKwh: number;
@@ -79,11 +81,17 @@ export type SolarBatteryOutput = {
   loanAmount: number;
   annualDebtService: number;
   year1Savings: number;
+  /** First-year solar production (kWh), before degradation — scales automatically with solarSizeKw. */
+  annualProductionKwh: number;
   /** Fractional year the cumulative cash flow first reaches zero, or null if it never does within analysisYears. */
   paybackYears: number | null;
   lifetimeNetProfit: number;
   roiPct: number;
   cashFlowOverTime: CashFlowPoint[];
+  /** Same upfront cash compounding in an index fund instead — cumulative is the gain over principal. */
+  indexFundOverTime: CashFlowPoint[];
+  indexFundGain: number;
+  solarBeatsIndexFund: boolean;
   annualBreakdown: AnnualBreakdownPoint[];
   sensitivity: SensitivityPoint[];
 };
@@ -177,6 +185,27 @@ export function cashFlowSeries(inputs: SolarBatteryInputs): CashFlowPoint[] {
   return points;
 }
 
+/**
+ * The same upfront cash, compounding in an index fund instead of buying the system.
+ * cumulative(year) is the gain over principal (0 at year 0), so it's directly comparable
+ * to cashFlowSeries' cumulative — both read as "net position change from doing nothing."
+ */
+export function indexFundSeries(inputs: SolarBatteryInputs): CashFlowPoint[] {
+  const { netCost } = systemCost(inputs);
+  const { upfrontCash } = financeDetails(inputs, netCost);
+  const r = inputs.indexFundReturnPct / 100;
+  const N = Math.max(0, Math.floor(inputs.analysisYears));
+
+  const points: CashFlowPoint[] = [];
+  let prevValue = upfrontCash;
+  for (let year = 0; year <= N; year++) {
+    const value = upfrontCash * Math.pow(1 + r, year);
+    points.push({ year, cumulative: value - upfrontCash, net: year === 0 ? 0 : value - prevValue });
+    prevValue = value;
+  }
+  return points;
+}
+
 export function annualBreakdownSeries(
   inputs: SolarBatteryInputs,
   c: SolarBatteryConstants = SOLAR_BATTERY_DEFAULTS,
@@ -242,6 +271,7 @@ const NUMERIC_FIELDS: readonly (keyof SolarBatteryInputs)[] = [
   'downPaymentPct',
   'loanRatePct',
   'loanTermYears',
+  'indexFundReturnPct',
   'annualUsageKwh',
   'utilityRatePerKwh',
   'rateEscalationPct',
@@ -301,11 +331,14 @@ export function computeSolarBattery(
   const { hardwareCost, grossCost, itcAmount, netCost } = systemCost(inputs);
   const { upfrontCash, loanAmount, annualDebtService } = financeDetails(inputs, netCost);
   const cashFlowOverTime = cashFlowSeries(inputs);
+  const indexFundOverTime = indexFundSeries(inputs);
   const annualBreakdown = annualBreakdownSeries(inputs, c);
   const sensitivity = sensitivitySweep(inputs, c);
   const paybackYears = solvePaybackYears(inputs);
   const year1Savings = annualBillSavings(inputs, 1);
+  const annualProduction = annualProductionKwh(inputs, 1);
   const lifetimeNetProfit = cashFlowOverTime[cashFlowOverTime.length - 1]!.cumulative;
+  const indexFundGain = indexFundOverTime[indexFundOverTime.length - 1]!.cumulative;
   const roiPct = netCost > 0 ? (lifetimeNetProfit / netCost) * 100 : 0;
 
   return {
@@ -319,10 +352,14 @@ export function computeSolarBattery(
       loanAmount,
       annualDebtService,
       year1Savings,
+      annualProductionKwh: annualProduction,
       paybackYears,
       lifetimeNetProfit,
       roiPct,
       cashFlowOverTime,
+      indexFundOverTime,
+      indexFundGain,
+      solarBeatsIndexFund: lifetimeNetProfit > indexFundGain,
       annualBreakdown,
       sensitivity,
     },

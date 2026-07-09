@@ -139,6 +139,7 @@
   --calc-chart-solar-savings:    #14b8a6;
   --calc-chart-solar-debt:       #64748b;
   --calc-chart-solar-payback:    rgba(20, 184, 166, 0.85);
+  --calc-chart-solar-indexfund:  #8b5cf6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -171,5 +172,6 @@
     --calc-chart-solar-savings:    #5eead4;
     --calc-chart-solar-debt:       #94a3b8;
     --calc-chart-solar-payback:    rgba(94, 234, 212, 0.85);
+    --calc-chart-solar-indexfund:  #c4b5fd;
   }
 }
