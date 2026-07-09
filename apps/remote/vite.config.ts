@@ -21,6 +21,7 @@ export default defineConfig({
         './calc/eu5-loan': 'calc-eu5-loan',
         './calc/winston-salem-lvt': 'calc-winston-salem-lvt',
         './calc/rent-sell': 'calc-rent-sell',
+        './calc/solar-battery-generator': 'calc-solar-battery-generator',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.0.0' },
