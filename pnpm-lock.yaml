@@ -119,9 +119,9 @@ importers:
       calc-rural-land-offer:
         specifier: workspace:*
         version: link:../../packages/calc-rural-land-offer
-      calc-solar-battery-generator:
+      calc-solar-battery:
         specifier: workspace:*
-        version: link:../../packages/calc-solar-battery-generator
+        version: link:../../packages/calc-solar-battery
       calc-winston-salem-lvt:
         specifier: workspace:*
         version: link:../../packages/calc-winston-salem-lvt
@@ -207,7 +207,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.5(react@19.2.5)
 
-  packages/calc-solar-battery-generator:
+  packages/calc-solar-battery:
     dependencies:
       '@calc/charts':
         specifier: workspace:*

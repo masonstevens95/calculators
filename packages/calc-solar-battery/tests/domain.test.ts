@@ -2,30 +2,29 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  computeSolarBatteryGenerator,
+  computeSolarBattery,
   systemCost,
   monthlyLoanPayment,
   financeDetails,
   annualProductionKwh,
   annualBillSavings,
-  annualGeneratorCost,
   cashFlowSeries,
   solvePaybackYears,
   sensitivitySweep,
-  validateSolarBatteryGeneratorInputs,
+  validateSolarBatteryInputs,
 } from '../src/domain';
-import type { SolarBatteryGeneratorInputs } from '../src/domain';
-import { SOLAR_BATTERY_GENERATOR_INITIAL_INPUTS } from '../src/constants';
+import type { SolarBatteryInputs } from '../src/domain';
+import { SOLAR_BATTERY_INITIAL_INPUTS } from '../src/constants';
 
 const DOLLAR = 2;
 
-const DEFAULTS: SolarBatteryGeneratorInputs = { ...SOLAR_BATTERY_GENERATOR_INITIAL_INPUTS };
+const DEFAULTS: SolarBatteryInputs = { ...SOLAR_BATTERY_INITIAL_INPUTS };
 
 describe('systemCost', () => {
   it('sums hardware, applies soft costs, ITC, and rebate', () => {
     const solar = DEFAULTS.solarSizeKw * 1000 * DEFAULTS.solarCostPerWatt;
     const battery = DEFAULTS.batteryCapacityKwh * DEFAULTS.batteryCostPerKwh;
-    const hardware = solar + battery + DEFAULTS.generatorCost;
+    const hardware = solar + battery;
     const gross = hardware * (1 + DEFAULTS.softCostsPct / 100);
     const itc = gross * (DEFAULTS.federalItcPct / 100);
     const net = gross - itc - DEFAULTS.stateRebate;
@@ -114,23 +113,6 @@ describe('annualBillSavings', () => {
   });
 });
 
-describe('annualGeneratorCost', () => {
-  it('is maintenance + fuel burn in a non-replacement year', () => {
-    const fuel =
-      DEFAULTS.annualOutageHours * DEFAULTS.generatorBurnRateGalPerHr * DEFAULTS.fuelCostPerGallon;
-    expect(annualGeneratorCost(DEFAULTS, 1)).toBeCloseTo(
-      DEFAULTS.generatorMaintenanceAnnual + fuel,
-      DOLLAR,
-    );
-  });
-
-  it('adds the replacement lump sum in the replacement year', () => {
-    const withoutReplacement = annualGeneratorCost(DEFAULTS, DEFAULTS.generatorReplaceYear - 1);
-    const withReplacement = annualGeneratorCost(DEFAULTS, DEFAULTS.generatorReplaceYear);
-    expect(withReplacement - withoutReplacement).toBeCloseTo(DEFAULTS.generatorReplaceCost, DOLLAR);
-  });
-});
-
 describe('cashFlowSeries', () => {
   it('starts at year 0 with negative cumulative equal to -upfrontCash', () => {
     const { netCost } = systemCost(DEFAULTS);
@@ -145,7 +127,7 @@ describe('cashFlowSeries', () => {
   });
 
   it('stops charging debt service once the loan term ends', () => {
-    const shortLoan: SolarBatteryGeneratorInputs = {
+    const shortLoan: SolarBatteryInputs = {
       ...DEFAULTS,
       financeMode: 'loan',
       loanTermYears: 5,
@@ -156,8 +138,7 @@ describe('cashFlowSeries', () => {
     const { annualDebtService } = financeDetails(shortLoan, netCost);
     const yearSixNet = series[6]!.net;
     const billSavingsYearSix = annualBillSavings(shortLoan, 6);
-    const generatorCostYearSix = annualGeneratorCost(shortLoan, 6);
-    expect(yearSixNet).toBeCloseTo(billSavingsYearSix - generatorCostYearSix, DOLLAR);
+    expect(yearSixNet).toBeCloseTo(billSavingsYearSix, DOLLAR);
     expect(annualDebtService).toBeGreaterThan(0);
   });
 });
@@ -171,7 +152,7 @@ describe('solvePaybackYears', () => {
   });
 
   it('returns null when the system never breaks even in the analysis window', () => {
-    const neverPaysBack: SolarBatteryGeneratorInputs = {
+    const neverPaysBack: SolarBatteryInputs = {
       ...DEFAULTS,
       analysisYears: 1,
       solarSizeKw: 20,
@@ -183,7 +164,7 @@ describe('solvePaybackYears', () => {
   });
 
   it('returns 0 when upfront cash is already non-negative', () => {
-    const zeroDown: SolarBatteryGeneratorInputs = {
+    const zeroDown: SolarBatteryInputs = {
       ...DEFAULTS,
       financeMode: 'loan',
       downPaymentPct: 0,
@@ -209,23 +190,23 @@ describe('sensitivitySweep', () => {
   });
 });
 
-describe('validateSolarBatteryGeneratorInputs', () => {
+describe('validateSolarBatteryInputs', () => {
   it('accepts the canonical default input', () => {
-    expect(validateSolarBatteryGeneratorInputs(DEFAULTS)).toEqual({});
+    expect(validateSolarBatteryInputs(DEFAULTS)).toEqual({});
   });
 
   it('flags a negative solar size', () => {
-    const errors = validateSolarBatteryGeneratorInputs({ ...DEFAULTS, solarSizeKw: -1 });
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, solarSizeKw: -1 });
     expect(errors.solarSizeKw).toBeDefined();
   });
 
   it('flags an out-of-range analysis period', () => {
-    const errors = validateSolarBatteryGeneratorInputs({ ...DEFAULTS, analysisYears: 0 });
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, analysisYears: 0 });
     expect(errors.analysisYears).toBeDefined();
   });
 
   it('flags an invalid financeMode', () => {
-    const errors = validateSolarBatteryGeneratorInputs({
+    const errors = validateSolarBatteryInputs({
       ...DEFAULTS,
       financeMode: 'other' as never,
     });
@@ -233,31 +214,31 @@ describe('validateSolarBatteryGeneratorInputs', () => {
   });
 });
 
-describe('computeSolarBatteryGenerator (default scenario)', () => {
+describe('computeSolarBattery (default scenario)', () => {
   it('returns ok with the canonical default input', () => {
-    expect(computeSolarBatteryGenerator(DEFAULTS).ok).toBe(true);
+    expect(computeSolarBattery(DEFAULTS).ok).toBe(true);
   });
 
   it('returns errors for invalid input', () => {
-    const result = computeSolarBatteryGenerator({ ...DEFAULTS, solarSizeKw: Number.NaN });
+    const result = computeSolarBattery({ ...DEFAULTS, solarSizeKw: Number.NaN });
     expect(result.ok).toBe(false);
   });
 
   it('lifetimeNetProfit matches the final cash flow cumulative value', () => {
-    const result = computeSolarBatteryGenerator(DEFAULTS);
+    const result = computeSolarBattery(DEFAULTS);
     if (!result.ok) throw new Error('expected ok result');
     const series = cashFlowSeries(DEFAULTS);
     expect(result.result.lifetimeNetProfit).toBeCloseTo(series[series.length - 1]!.cumulative, DOLLAR);
   });
 
   it('annualBreakdown is capped at the configured breakdown window', () => {
-    const result = computeSolarBatteryGenerator(DEFAULTS);
+    const result = computeSolarBattery(DEFAULTS);
     if (!result.ok) throw new Error('expected ok result');
     expect(result.result.annualBreakdown.length).toBeLessThanOrEqual(15);
   });
 
   it('cash purchase costs more upfront but owes no ongoing debt service', () => {
-    const cashResult = computeSolarBatteryGenerator({ ...DEFAULTS, financeMode: 'cash' });
+    const cashResult = computeSolarBattery({ ...DEFAULTS, financeMode: 'cash' });
     if (!cashResult.ok) throw new Error('expected ok result');
     expect(cashResult.result.annualDebtService).toBe(0);
     expect(cashResult.result.upfrontCash).toBeCloseTo(cashResult.result.netCost, DOLLAR);

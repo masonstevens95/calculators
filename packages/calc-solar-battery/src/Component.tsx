@@ -8,22 +8,18 @@ import {
   ResultDisplay,
 } from '@calc/ui';
 import { formatCurrency, formatPercent } from '@calc/domain-utils';
-import { computeSolarBatteryGenerator } from './domain';
-import type { FinanceMode, SolarBatteryGeneratorInputs } from './domain';
-import { SOLAR_BATTERY_GENERATOR_INITIAL_INPUTS } from './constants';
-import {
-  AnnualBreakdownChart,
-  CashFlowChart,
-  SensitivityChart,
-} from './charts/SolarBatteryGeneratorCharts';
+import { computeSolarBattery } from './domain';
+import type { FinanceMode, SolarBatteryInputs } from './domain';
+import { SOLAR_BATTERY_INITIAL_INPUTS } from './constants';
+import { AnnualBreakdownChart, CashFlowChart, SensitivityChart } from './charts/SolarBatteryCharts';
 import styles from './Component.module.css';
 
-const DEFAULT_INPUTS: SolarBatteryGeneratorInputs = { ...SOLAR_BATTERY_GENERATOR_INITIAL_INPUTS };
+const DEFAULT_INPUTS: SolarBatteryInputs = { ...SOLAR_BATTERY_INITIAL_INPUTS };
 
-type NumericField = Exclude<keyof SolarBatteryGeneratorInputs, 'financeMode'>;
+type NumericField = Exclude<keyof SolarBatteryInputs, 'financeMode'>;
 
-export function SolarBatteryGeneratorComponent() {
-  const [inputs, setInputs] = useState<SolarBatteryGeneratorInputs>(DEFAULT_INPUTS);
+export function SolarBatteryComponent() {
+  const [inputs, setInputs] = useState<SolarBatteryInputs>(DEFAULT_INPUTS);
 
   function setNum(field: NumericField, fallback = 0) {
     return (v: number | '') => {
@@ -31,12 +27,12 @@ export function SolarBatteryGeneratorComponent() {
     };
   }
 
-  const computation = useMemo(() => computeSolarBatteryGenerator(inputs), [inputs]);
+  const computation = useMemo(() => computeSolarBattery(inputs), [inputs]);
 
   if (!computation.ok) {
     return (
       <section className={styles.layout}>
-        <h1>Solar + Battery + Generator</h1>
+        <h1>Solar + Battery</h1>
         <p role="alert">Some inputs are invalid. Adjust and try again.</p>
         <ul>
           {Object.entries(computation.errors).map(([field, message]) => (
@@ -51,25 +47,25 @@ export function SolarBatteryGeneratorComponent() {
 
   const r = computation.result;
   const paysBack = r.paybackYears !== null;
+  const isLoan = inputs.financeMode === 'loan';
 
   return (
-    <section className={styles.layout} aria-labelledby="solar-battery-generator-heading">
+    <section className={styles.layout} aria-labelledby="solar-battery-heading">
       <div className={styles.header}>
-        <h1 id="solar-battery-generator-heading" className={styles.heading}>
-          Solar + Battery + Generator
+        <h1 id="solar-battery-heading" className={styles.heading}>
+          Solar + Battery
         </h1>
         <p className={styles.subtitle}>
-          You&apos;re weighing a home solar array, battery backup, and standby generator. The
-          calculator nets the system cost against incentives and financing, then walks the
-          year-by-year utility-bill savings and generator operating cost to find the payback
-          period and lifetime return.
+          You&apos;re weighing a home solar array and battery backup. The calculator nets the
+          system cost against incentives and financing, then walks the year-by-year
+          utility-bill savings to find the payback period and lifetime return.
         </p>
       </div>
 
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>System &amp; cost</h2>
         <div className={styles.inputGrid}>
-          <FormField label="Solar array size">
+          <FormField label="Solar array size (kW)">
             {({ id, describedBy }) => (
               <NumberInput
                 id={id}
@@ -106,16 +102,6 @@ export function SolarBatteryGeneratorComponent() {
                 aria-describedby={describedBy}
                 value={inputs.batteryCostPerKwh}
                 onChange={setNum('batteryCostPerKwh')}
-              />
-            )}
-          </FormField>
-          <FormField label="Generator cost">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.generatorCost}
-                onChange={setNum('generatorCost')}
               />
             )}
           </FormField>
@@ -170,37 +156,41 @@ export function SolarBatteryGeneratorComponent() {
               </select>
             )}
           </FormField>
-          <FormField label="Down payment">
-            {({ id, describedBy }) => (
-              <PercentInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.downPaymentPct}
-                onChange={setNum('downPaymentPct')}
-              />
-            )}
-          </FormField>
-          <FormField label="Loan rate">
-            {({ id, describedBy }) => (
-              <PercentInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.loanRatePct}
-                onChange={setNum('loanRatePct')}
-              />
-            )}
-          </FormField>
-          <FormField label="Loan term (years)">
-            {({ id, describedBy }) => (
-              <NumberInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.loanTermYears}
-                onChange={setNum('loanTermYears', 15)}
-                allowDecimal={false}
-              />
-            )}
-          </FormField>
+          {isLoan && (
+            <>
+              <FormField label="Down payment">
+                {({ id, describedBy }) => (
+                  <PercentInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.downPaymentPct}
+                    onChange={setNum('downPaymentPct')}
+                  />
+                )}
+              </FormField>
+              <FormField label="Loan rate">
+                {({ id, describedBy }) => (
+                  <PercentInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.loanRatePct}
+                    onChange={setNum('loanRatePct')}
+                  />
+                )}
+              </FormField>
+              <FormField label="Loan term (years)">
+                {({ id, describedBy }) => (
+                  <NumberInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.loanTermYears}
+                    onChange={setNum('loanTermYears', 15)}
+                    allowDecimal={false}
+                  />
+                )}
+              </FormField>
+            </>
+          )}
         </div>
       </section>
 
@@ -293,74 +283,6 @@ export function SolarBatteryGeneratorComponent() {
         </div>
       </section>
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Generator &amp; backup</h2>
-        <div className={styles.inputGrid}>
-          <FormField label="Fuel cost per gallon">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.fuelCostPerGallon}
-                onChange={setNum('fuelCostPerGallon')}
-              />
-            )}
-          </FormField>
-          <FormField label="Burn rate (gal/hr)">
-            {({ id, describedBy }) => (
-              <NumberInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.generatorBurnRateGalPerHr}
-                onChange={setNum('generatorBurnRateGalPerHr')}
-              />
-            )}
-          </FormField>
-          <FormField label="Expected outage hours/yr">
-            {({ id, describedBy }) => (
-              <NumberInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.annualOutageHours}
-                onChange={setNum('annualOutageHours')}
-                allowDecimal={false}
-              />
-            )}
-          </FormField>
-          <FormField label="Annual maintenance">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.generatorMaintenanceAnnual}
-                onChange={setNum('generatorMaintenanceAnnual')}
-              />
-            )}
-          </FormField>
-          <FormField label="Replacement year">
-            {({ id, describedBy }) => (
-              <NumberInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.generatorReplaceYear}
-                onChange={setNum('generatorReplaceYear', 12)}
-                allowDecimal={false}
-              />
-            )}
-          </FormField>
-          <FormField label="Replacement cost">
-            {({ id, describedBy }) => (
-              <CurrencyInput
-                id={id}
-                aria-describedby={describedBy}
-                value={inputs.generatorReplaceCost}
-                onChange={setNum('generatorReplaceCost')}
-              />
-            )}
-          </FormField>
-        </div>
-      </section>
-
       <AriaLive className={styles.results}>
         <h2 className={styles.sectionHeading}>Payback</h2>
         <div className={styles.headline} data-verdict={paysBack ? 'yes' : 'never'}>
@@ -394,7 +316,7 @@ export function SolarBatteryGeneratorComponent() {
           <ResultDisplay
             label="Year 1 bill savings"
             value={`${formatCurrency(r.year1Savings, { maximumFractionDigits: 0 })}/yr`}
-            detail={inputs.financeMode === 'loan' ? 'before loan payment' : 'cash purchase'}
+            detail={isLoan ? 'before loan payment' : 'cash purchase'}
           />
           <ResultDisplay
             label="Payback period"
@@ -427,4 +349,4 @@ export function SolarBatteryGeneratorComponent() {
   );
 }
 
-export default SolarBatteryGeneratorComponent;
+export default SolarBatteryComponent;

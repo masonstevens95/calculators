@@ -134,10 +134,9 @@
   --calc-chart-lvt-split:        #2a6f4d;
   --calc-chart-lvt-pure:         #b85c00;
 
-  /* Solar + Battery + Generator (cash flow / breakdown / sensitivity) */
+  /* Solar + Battery (cash flow / breakdown / sensitivity) */
   --calc-chart-solar-cumulative: #f59e0b;
   --calc-chart-solar-savings:    #14b8a6;
-  --calc-chart-solar-generator:  #ef4444;
   --calc-chart-solar-debt:       #64748b;
   --calc-chart-solar-payback:    rgba(20, 184, 166, 0.85);
 }
@@ -170,7 +169,6 @@
 
     --calc-chart-solar-cumulative: #fbbf24;
     --calc-chart-solar-savings:    #5eead4;
-    --calc-chart-solar-generator:  #fca5a5;
     --calc-chart-solar-debt:       #94a3b8;
     --calc-chart-solar-payback:    rgba(94, 234, 212, 0.85);
   }

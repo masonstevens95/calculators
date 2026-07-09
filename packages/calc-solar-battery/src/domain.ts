@@ -1,24 +1,23 @@
-// Pure domain for the Solar + Battery + Generator calculator.
+// Pure domain for the Solar + Battery calculator.
 //
-// Models the upfront cost (solar + battery + generator hardware, soft costs,
-// incentives, financing) against the annual value it produces: utility bill
-// offset from solar production (self-consumed + net-metered export) minus
-// generator fuel/maintenance/replacement cost and any loan debt service.
-// Walks the resulting year-by-year cash flow to solve for the payback year
-// (first point the cumulative cash flow crosses zero) and lifetime ROI.
+// Models the upfront cost (solar + battery hardware, soft costs, incentives,
+// financing) against the annual value it produces: utility bill offset from
+// solar production (self-consumed + net-metered export) minus any loan debt
+// service. Walks the resulting year-by-year cash flow to solve for the
+// payback year (first point the cumulative cash flow crosses zero) and
+// lifetime ROI.
 
-import { SOLAR_BATTERY_GENERATOR_DEFAULTS } from './constants';
-import type { SolarBatteryGeneratorConstants } from './constants';
+import { SOLAR_BATTERY_DEFAULTS } from './constants';
+import type { SolarBatteryConstants } from './constants';
 
 export type FinanceMode = 'cash' | 'loan';
 
-export type SolarBatteryGeneratorInputs = {
+export type SolarBatteryInputs = {
   // System & cost
   solarSizeKw: number;
   solarCostPerWatt: number;
   batteryCapacityKwh: number;
   batteryCostPerKwh: number;
-  generatorCost: number;
   softCostsPct: number;
   federalItcPct: number;
   stateRebate: number;
@@ -35,13 +34,6 @@ export type SolarBatteryGeneratorInputs = {
   selfConsumptionPct: number;
   netMeteringPct: number;
   systemDegradationPct: number;
-  // Generator / backup
-  fuelCostPerGallon: number;
-  generatorBurnRateGalPerHr: number;
-  annualOutageHours: number;
-  generatorMaintenanceAnnual: number;
-  generatorReplaceYear: number;
-  generatorReplaceCost: number;
   // Analysis
   analysisYears: number;
 };
@@ -63,12 +55,11 @@ export type CashFlowPoint = { year: number; cumulative: number; net: number };
 export type AnnualBreakdownPoint = {
   year: number;
   billSavings: number;
-  generatorCost: number;
   debtService: number;
 };
 export type SensitivityPoint = { rateEscalationPct: number; paybackYears: number | null };
 
-export type SolarBatteryGeneratorOutput = {
+export type SolarBatteryOutput = {
   hardwareCost: number;
   grossCost: number;
   itcAmount: number;
@@ -86,16 +77,16 @@ export type SolarBatteryGeneratorOutput = {
   sensitivity: SensitivityPoint[];
 };
 
-export type ComputeSolarBatteryGeneratorResult =
-  | { ok: true; result: SolarBatteryGeneratorOutput }
-  | { ok: false; errors: Partial<Record<keyof SolarBatteryGeneratorInputs, string>> };
+export type ComputeSolarBatteryResult =
+  | { ok: true; result: SolarBatteryOutput }
+  | { ok: false; errors: Partial<Record<keyof SolarBatteryInputs, string>> };
 
 // ---------- cost & financing primitives ----------
 
-export function systemCost(inputs: SolarBatteryGeneratorInputs): SystemCost {
+export function systemCost(inputs: SolarBatteryInputs): SystemCost {
   const solarCost = inputs.solarSizeKw * 1000 * inputs.solarCostPerWatt;
   const batteryCost = inputs.batteryCapacityKwh * inputs.batteryCostPerKwh;
-  const hardwareCost = solarCost + batteryCost + inputs.generatorCost;
+  const hardwareCost = solarCost + batteryCost;
   const grossCost = hardwareCost * (1 + inputs.softCostsPct / 100);
   const itcAmount = grossCost * (inputs.federalItcPct / 100);
   const netCost = Math.max(0, grossCost - itcAmount - inputs.stateRebate);
@@ -110,10 +101,7 @@ export function monthlyLoanPayment(principal: number, annualRatePct: number, ter
   return (principal * r) / (1 - Math.pow(1 + r, -n));
 }
 
-export function financeDetails(
-  inputs: SolarBatteryGeneratorInputs,
-  netCost: number,
-): FinanceDetails {
+export function financeDetails(inputs: SolarBatteryInputs, netCost: number): FinanceDetails {
   if (inputs.financeMode === 'cash') {
     return { upfrontCash: netCost, loanAmount: 0, annualDebtService: 0 };
   }
@@ -126,13 +114,13 @@ export function financeDetails(
 // ---------- annual energy & cost primitives ----------
 
 /** Solar production for a given analysis year (1-indexed), net of cumulative panel degradation. */
-export function annualProductionKwh(inputs: SolarBatteryGeneratorInputs, year: number): number {
+export function annualProductionKwh(inputs: SolarBatteryInputs, year: number): number {
   const degradationFactor = Math.pow(1 - inputs.systemDegradationPct / 100, year - 1);
   return inputs.solarSizeKw * inputs.productionPerKw * degradationFactor;
 }
 
 /** Utility bill offset: self-consumed kWh at the escalated retail rate + exported kWh at the net-metering rate. */
-export function annualBillSavings(inputs: SolarBatteryGeneratorInputs, year: number): number {
+export function annualBillSavings(inputs: SolarBatteryInputs, year: number): number {
   const production = annualProductionKwh(inputs, year);
   const selfConsumedKwh = production * (inputs.selfConsumptionPct / 100);
   const exportedKwh = production - selfConsumedKwh;
@@ -142,16 +130,9 @@ export function annualBillSavings(inputs: SolarBatteryGeneratorInputs, year: num
   return selfConsumedKwh * escalatedRate + exportedKwh * exportRate;
 }
 
-/** Generator fuel + maintenance for the year, plus a one-time replacement lump sum in generatorReplaceYear. */
-export function annualGeneratorCost(inputs: SolarBatteryGeneratorInputs, year: number): number {
-  const fuelCost = inputs.annualOutageHours * inputs.generatorBurnRateGalPerHr * inputs.fuelCostPerGallon;
-  const replacement = year === Math.round(inputs.generatorReplaceYear) ? inputs.generatorReplaceCost : 0;
-  return inputs.generatorMaintenanceAnnual + fuelCost + replacement;
-}
-
 // ---------- cash-flow series & solvers ----------
 
-export function cashFlowSeries(inputs: SolarBatteryGeneratorInputs): CashFlowPoint[] {
+export function cashFlowSeries(inputs: SolarBatteryInputs): CashFlowPoint[] {
   const { netCost } = systemCost(inputs);
   const { upfrontCash, annualDebtService } = financeDetails(inputs, netCost);
   const loanYears = inputs.financeMode === 'loan' ? inputs.loanTermYears : 0;
@@ -161,9 +142,8 @@ export function cashFlowSeries(inputs: SolarBatteryGeneratorInputs): CashFlowPoi
   let cumulative = -upfrontCash;
   for (let year = 1; year <= N; year++) {
     const billSavings = annualBillSavings(inputs, year);
-    const generatorCost = annualGeneratorCost(inputs, year);
     const debtService = year <= loanYears ? annualDebtService : 0;
-    const net = billSavings - generatorCost - debtService;
+    const net = billSavings - debtService;
     cumulative += net;
     points.push({ year, cumulative, net });
   }
@@ -171,8 +151,8 @@ export function cashFlowSeries(inputs: SolarBatteryGeneratorInputs): CashFlowPoi
 }
 
 export function annualBreakdownSeries(
-  inputs: SolarBatteryGeneratorInputs,
-  c: SolarBatteryGeneratorConstants = SOLAR_BATTERY_GENERATOR_DEFAULTS,
+  inputs: SolarBatteryInputs,
+  c: SolarBatteryConstants = SOLAR_BATTERY_DEFAULTS,
 ): AnnualBreakdownPoint[] {
   const { netCost } = systemCost(inputs);
   const { annualDebtService } = financeDetails(inputs, netCost);
@@ -184,7 +164,6 @@ export function annualBreakdownSeries(
     points.push({
       year,
       billSavings: annualBillSavings(inputs, year),
-      generatorCost: annualGeneratorCost(inputs, year),
       debtService: year <= loanYears ? annualDebtService : 0,
     });
   }
@@ -192,7 +171,7 @@ export function annualBreakdownSeries(
 }
 
 /** First fractional year the cumulative cash flow reaches zero, via linear interpolation between year-end points. */
-export function solvePaybackYears(inputs: SolarBatteryGeneratorInputs): number | null {
+export function solvePaybackYears(inputs: SolarBatteryInputs): number | null {
   const points = cashFlowSeries(inputs);
   const first = points[0]!;
   if (first.cumulative >= 0) return 0;
@@ -209,12 +188,12 @@ export function solvePaybackYears(inputs: SolarBatteryGeneratorInputs): number |
 }
 
 export function sensitivitySweep(
-  inputs: SolarBatteryGeneratorInputs,
-  c: SolarBatteryGeneratorConstants = SOLAR_BATTERY_GENERATOR_DEFAULTS,
+  inputs: SolarBatteryInputs,
+  c: SolarBatteryConstants = SOLAR_BATTERY_DEFAULTS,
 ): SensitivityPoint[] {
   const points: SensitivityPoint[] = [];
   for (let pct = c.sweepStartPct; pct <= c.sweepEndPct; pct += c.sweepStepPct) {
-    const swept: SolarBatteryGeneratorInputs = { ...inputs, rateEscalationPct: pct };
+    const swept: SolarBatteryInputs = { ...inputs, rateEscalationPct: pct };
     points.push({ rateEscalationPct: pct, paybackYears: solvePaybackYears(swept) });
   }
   return points;
@@ -222,12 +201,11 @@ export function sensitivitySweep(
 
 // ---------- validation ----------
 
-const NUMERIC_FIELDS: readonly (keyof SolarBatteryGeneratorInputs)[] = [
+const NUMERIC_FIELDS: readonly (keyof SolarBatteryInputs)[] = [
   'solarSizeKw',
   'solarCostPerWatt',
   'batteryCapacityKwh',
   'batteryCostPerKwh',
-  'generatorCost',
   'softCostsPct',
   'federalItcPct',
   'stateRebate',
@@ -241,19 +219,13 @@ const NUMERIC_FIELDS: readonly (keyof SolarBatteryGeneratorInputs)[] = [
   'selfConsumptionPct',
   'netMeteringPct',
   'systemDegradationPct',
-  'fuelCostPerGallon',
-  'generatorBurnRateGalPerHr',
-  'annualOutageHours',
-  'generatorMaintenanceAnnual',
-  'generatorReplaceYear',
-  'generatorReplaceCost',
   'analysisYears',
 ];
 
-export function validateSolarBatteryGeneratorInputs(
-  inputs: SolarBatteryGeneratorInputs,
-): Partial<Record<keyof SolarBatteryGeneratorInputs, string>> {
-  const errors: Partial<Record<keyof SolarBatteryGeneratorInputs, string>> = {};
+export function validateSolarBatteryInputs(
+  inputs: SolarBatteryInputs,
+): Partial<Record<keyof SolarBatteryInputs, string>> {
+  const errors: Partial<Record<keyof SolarBatteryInputs, string>> = {};
   for (const field of NUMERIC_FIELDS) {
     const value = inputs[field];
     if (typeof value !== 'number' || !Number.isFinite(value)) {
@@ -264,7 +236,6 @@ export function validateSolarBatteryGeneratorInputs(
   if (inputs.batteryCapacityKwh < 0) {
     errors.batteryCapacityKwh = 'batteryCapacityKwh must be zero or greater.';
   }
-  if (inputs.generatorCost < 0) errors.generatorCost = 'generatorCost must be zero or greater.';
   if (inputs.analysisYears <= 0 || inputs.analysisYears > 40) {
     errors.analysisYears = 'analysisYears must be between 1 and 40.';
   }
@@ -279,11 +250,11 @@ export function validateSolarBatteryGeneratorInputs(
 
 // ---------- top-level entry ----------
 
-export function computeSolarBatteryGenerator(
-  inputs: SolarBatteryGeneratorInputs,
-  c: SolarBatteryGeneratorConstants = SOLAR_BATTERY_GENERATOR_DEFAULTS,
-): ComputeSolarBatteryGeneratorResult {
-  const errors = validateSolarBatteryGeneratorInputs(inputs);
+export function computeSolarBattery(
+  inputs: SolarBatteryInputs,
+  c: SolarBatteryConstants = SOLAR_BATTERY_DEFAULTS,
+): ComputeSolarBatteryResult {
+  const errors = validateSolarBatteryInputs(inputs);
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
