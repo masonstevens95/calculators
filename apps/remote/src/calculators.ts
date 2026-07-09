@@ -8,6 +8,7 @@ import ModularHomeDscr from 'calc-modular-home-dscr';
 import Eu5Loan from 'calc-eu5-loan';
 import WinstonSalemLvt from 'calc-winston-salem-lvt';
 import RentSell from 'calc-rent-sell';
+import SolarBatteryGenerator from 'calc-solar-battery-generator';
 
 export type CalcDescriptor = {
   slug: string;
@@ -48,6 +49,12 @@ export const calculators: readonly CalcDescriptor[] = [
     title: 'Rent vs Sell',
     blurb: 'Rent-vs-sell scenario analysis with charted comparisons over time.',
     Component: RentSell,
+  },
+  {
+    slug: 'solar-battery-generator',
+    title: 'Solar + Battery + Generator',
+    blurb: 'Payback period and lifetime ROI for a home solar, battery backup, and generator system.',
+    Component: SolarBatteryGenerator,
   },
 ] as const;
 

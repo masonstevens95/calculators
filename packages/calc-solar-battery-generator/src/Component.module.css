@@ -1,0 +1,102 @@
+.layout {
+  max-width: 76rem;
+  margin: 0 auto;
+  font-size: 0.92rem;
+  color: var(--calc-color-text);
+}
+
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.heading {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+  color: var(--calc-brand-solar);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--calc-color-text-muted);
+  font-size: 0.85rem;
+}
+
+.card {
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.125rem;
+  margin: 0 0 1rem;
+}
+
+.cardTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--calc-brand-solar);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 0.25rem;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.select {
+  display: block;
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid var(--calc-color-input-border);
+  border-radius: 0.375rem;
+  background: var(--calc-color-input-bg);
+  color: var(--calc-color-text-emphasis);
+}
+
+.results {
+  margin-top: 1rem;
+}
+
+.sectionHeading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--calc-color-text-emphasis);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.chartWrap {
+  position: relative;
+  height: 18rem;
+  margin-top: 0.5rem;
+}
+
+.headline {
+  background: var(--calc-color-surface-raised);
+  border: 1px solid var(--calc-color-border);
+  border-left: 3px solid var(--calc-brand-solar);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.headline[data-verdict='never'] {
+  border-left-color: var(--calc-color-error-text);
+}
+
+.headlineLead {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  color: var(--calc-color-text-emphasis);
+}
+
+.headlineSub {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--calc-color-text-muted);
+}

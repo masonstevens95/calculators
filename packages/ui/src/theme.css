@@ -92,6 +92,8 @@
   --calc-brand-rent-sell-card:   light-dark(#f0fdf4, #052e16);
   --calc-brand-rent-sell-card-border: light-dark(#bbf7d0, #14532d);
 
+  --calc-brand-solar:            light-dark(#b45309, #fbbf24);
+
   /* ===== Chart series + axis =====
    *
    * Chart.js draws to <canvas>, which doesn't inherit CSS. Per-series and
@@ -131,6 +133,13 @@
   --calc-chart-lvt-today:        #999999;
   --calc-chart-lvt-split:        #2a6f4d;
   --calc-chart-lvt-pure:         #b85c00;
+
+  /* Solar + Battery + Generator (cash flow / breakdown / sensitivity) */
+  --calc-chart-solar-cumulative: #f59e0b;
+  --calc-chart-solar-savings:    #14b8a6;
+  --calc-chart-solar-generator:  #ef4444;
+  --calc-chart-solar-debt:       #64748b;
+  --calc-chart-solar-payback:    rgba(20, 184, 166, 0.85);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -158,5 +167,11 @@
     --calc-chart-lvt-today:        #94a3b8;
     --calc-chart-lvt-split:        #52b788;
     --calc-chart-lvt-pure:         #f59e0b;
+
+    --calc-chart-solar-cumulative: #fbbf24;
+    --calc-chart-solar-savings:    #5eead4;
+    --calc-chart-solar-generator:  #fca5a5;
+    --calc-chart-solar-debt:       #94a3b8;
+    --calc-chart-solar-payback:    rgba(94, 234, 212, 0.85);
   }
 }
