@@ -33,6 +33,18 @@ describe('<SolarBatteryComponent />', () => {
     expect(screen.queryByText(/generator/i)).not.toBeInTheDocument();
   });
 
+  it('renders a panel age field defaulting to 0, and reduces estimated production when raised', () => {
+    render(<SolarBatteryComponent />);
+    const panelAge = screen.getByLabelText(/panel age/i) as HTMLInputElement;
+    expect(panelAge.value).toBe('0');
+
+    const productionBefore = screen.getByText(/kWh\/yr$/).textContent;
+    fireEvent.change(panelAge, { target: { value: '15' } });
+    const productionAfter = screen.getByText(/kWh\/yr$/).textContent;
+
+    expect(productionAfter).not.toBe(productionBefore);
+  });
+
   it('toggles solar cost input between per-watt and total system cost', () => {
     render(<SolarBatteryComponent />);
     expect(screen.getByLabelText('Solar cost per watt')).toBeInTheDocument();
@@ -113,5 +125,44 @@ describe('<SolarBatteryComponent />', () => {
   it('routes results through aria-live', () => {
     const { container } = render(<SolarBatteryComponent />);
     expect(container.querySelector('[aria-live]')).not.toBeNull();
+  });
+
+  it('renders the Suggested sizing section with house size, coverage goal, and an autofill button', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByRole('heading', { name: 'Suggested sizing', level: 2 })).toBeInTheDocument();
+    expect(screen.getByLabelText(/house size/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/coverage goal/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /autofill solar & battery sizing/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('autofills solar size and battery capacity from the suggested sizing tool', () => {
+    render(<SolarBatteryComponent />);
+    const solarSize = screen.getByLabelText(/solar array size \(kw\)/i) as HTMLInputElement;
+    const batteryCapacity = screen.getByLabelText(/battery capacity/i) as HTMLInputElement;
+    const originalSolarSize = solarSize.value;
+
+    fireEvent.click(screen.getByRole('button', { name: /autofill solar & battery sizing/i }));
+
+    expect(solarSize.value).not.toBe(originalSolarSize);
+    expect(Number(solarSize.value)).toBeGreaterThan(0);
+    expect(Number(batteryCapacity.value)).toBeGreaterThan(0);
+  });
+
+  it('suggests a larger solar array for Total coverage than for Minimal', () => {
+    render(<SolarBatteryComponent />);
+    const coverageGoal = screen.getByLabelText(/coverage goal/i);
+    const preview = () => screen.getByTestId('sizing-preview').textContent ?? '';
+
+    fireEvent.change(coverageGoal, { target: { value: 'minimal' } });
+    const minimalMatch = /Suggests ([\d.]+) kW/.exec(preview());
+
+    fireEvent.change(coverageGoal, { target: { value: 'totalCoverage' } });
+    const totalMatch = /Suggests ([\d.]+) kW/.exec(preview());
+
+    expect(minimalMatch).not.toBeNull();
+    expect(totalMatch).not.toBeNull();
+    expect(Number(totalMatch![1])).toBeGreaterThan(Number(minimalMatch![1]));
   });
 });

@@ -15,6 +15,8 @@ export {
   solvePaybackYears,
   sensitivitySweep,
   validateSolarBatteryInputs,
+  suggestSystemSizing,
+  SIZING_PROFILES,
 } from './domain';
 export type {
   FinanceMode,
@@ -29,6 +31,9 @@ export type {
   AnnualBreakdownPoint,
   SensitivityPoint,
   ComputeSolarBatteryResult,
+  SizingProfile,
+  SizingProfileConfig,
+  SizingSuggestion,
 } from './domain';
-export { SOLAR_BATTERY_DEFAULTS, SOLAR_BATTERY_INITIAL_INPUTS } from './constants';
+export { SOLAR_BATTERY_DEFAULTS, SOLAR_BATTERY_INITIAL_INPUTS, DEFAULT_HOUSE_SQFT } from './constants';
 export type { SolarBatteryConstants } from './constants';

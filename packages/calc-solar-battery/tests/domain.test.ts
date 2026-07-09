@@ -16,9 +16,11 @@ import {
   solvePaybackYears,
   sensitivitySweep,
   validateSolarBatteryInputs,
+  suggestSystemSizing,
+  SIZING_PROFILES,
 } from '../src/domain';
-import type { SolarBatteryInputs } from '../src/domain';
-import { SOLAR_BATTERY_INITIAL_INPUTS } from '../src/constants';
+import type { SizingProfile, SolarBatteryInputs } from '../src/domain';
+import { SOLAR_BATTERY_DEFAULTS, SOLAR_BATTERY_INITIAL_INPUTS } from '../src/constants';
 
 const DOLLAR = 2;
 
@@ -156,6 +158,16 @@ describe('annualProductionKwh', () => {
     const y10 = annualProductionKwh(DEFAULTS, 10);
     expect(y10).toBeLessThan(y1);
   });
+
+  it('a secondhand panel with N years of age starts where a new panel would be at year N+1', () => {
+    const secondhand: SolarBatteryInputs = { ...DEFAULTS, panelAgeYears: 10 };
+    expect(annualProductionKwh(secondhand, 1)).toBeCloseTo(annualProductionKwh(DEFAULTS, 11), DOLLAR);
+  });
+
+  it('panel age produces strictly less output than new panels at the same analysis year', () => {
+    const secondhand: SolarBatteryInputs = { ...DEFAULTS, panelAgeYears: 5 };
+    expect(annualProductionKwh(secondhand, 1)).toBeLessThan(annualProductionKwh(DEFAULTS, 1));
+  });
 });
 
 describe('annualBillSavings', () => {
@@ -164,9 +176,18 @@ describe('annualBillSavings', () => {
     const selfConsumed = production * (DEFAULTS.selfConsumptionPct / 100);
     const exported = production - selfConsumed;
     const expected =
-      selfConsumed * DEFAULTS.utilityRatePerKwh +
-      exported * DEFAULTS.utilityRatePerKwh * (DEFAULTS.netMeteringPct / 100);
+      selfConsumed * DEFAULTS.utilityRatePerKwh + exported * DEFAULTS.exportRatePerKwh;
     expect(annualBillSavings(DEFAULTS, 1)).toBeCloseTo(expected, DOLLAR);
+  });
+
+  it('exported kWh is credited at the flat sell-back rate, not the retail rate', () => {
+    const highExportRate: SolarBatteryInputs = {
+      ...DEFAULTS,
+      exportRatePerKwh: DEFAULTS.utilityRatePerKwh * 2,
+    };
+    const lowExportRate: SolarBatteryInputs = { ...DEFAULTS, exportRatePerKwh: 0 };
+    expect(annualBillSavings(highExportRate, 1)).toBeGreaterThan(annualBillSavings(DEFAULTS, 1));
+    expect(annualBillSavings(lowExportRate, 1)).toBeLessThan(annualBillSavings(DEFAULTS, 1));
   });
 
   it('grows with the escalated utility rate in later years', () => {
@@ -278,6 +299,71 @@ describe('sensitivitySweep', () => {
   });
 });
 
+describe('suggestSystemSizing', () => {
+  const HOUSE_SQFT = 1_800;
+  const PRODUCTION_PER_KW = 1_500;
+
+  it('estimates annual usage from house size via usagePerSqFtKwh', () => {
+    const suggestion = suggestSystemSizing(HOUSE_SQFT, 'bestRoi', PRODUCTION_PER_KW);
+    expect(suggestion.estimatedAnnualUsageKwh).toBe(
+      Math.round(HOUSE_SQFT * SOLAR_BATTERY_DEFAULTS.usagePerSqFtKwh),
+    );
+  });
+
+  it('solar sizing follows usageCoveragePct / productionPerKw for every profile', () => {
+    const profiles: readonly SizingProfile[] = [
+      'minimal',
+      'essentials',
+      'bestRoi',
+      'totalCoverage',
+      'offGrid',
+    ];
+    for (const profile of profiles) {
+      const suggestion = suggestSystemSizing(HOUSE_SQFT, profile, PRODUCTION_PER_KW);
+      const cfg = SIZING_PROFILES[profile];
+      const expectedKw =
+        (suggestion.estimatedAnnualUsageKwh * (cfg.usageCoveragePct / 100)) / PRODUCTION_PER_KW;
+      expect(suggestion.solarSizeKw).toBeCloseTo(expectedKw, 0);
+    }
+  });
+
+  it('orders solar sizing from smallest to largest: minimal < essentials < bestRoi <= totalCoverage < offGrid', () => {
+    const minimal = suggestSystemSizing(HOUSE_SQFT, 'minimal', PRODUCTION_PER_KW);
+    const essentials = suggestSystemSizing(HOUSE_SQFT, 'essentials', PRODUCTION_PER_KW);
+    const bestRoi = suggestSystemSizing(HOUSE_SQFT, 'bestRoi', PRODUCTION_PER_KW);
+    const totalCoverage = suggestSystemSizing(HOUSE_SQFT, 'totalCoverage', PRODUCTION_PER_KW);
+    const offGrid = suggestSystemSizing(HOUSE_SQFT, 'offGrid', PRODUCTION_PER_KW);
+
+    expect(minimal.solarSizeKw).toBeLessThan(essentials.solarSizeKw);
+    expect(essentials.solarSizeKw).toBeLessThan(bestRoi.solarSizeKw);
+    expect(bestRoi.solarSizeKw).toBeLessThanOrEqual(totalCoverage.solarSizeKw);
+    expect(totalCoverage.solarSizeKw).toBeLessThan(offGrid.solarSizeKw);
+
+    expect(minimal.batteryCapacityKwh).toBeLessThan(essentials.batteryCapacityKwh);
+    expect(totalCoverage.batteryCapacityKwh).toBeGreaterThan(essentials.batteryCapacityKwh);
+    expect(offGrid.batteryCapacityKwh).toBeGreaterThan(totalCoverage.batteryCapacityKwh);
+  });
+
+  it('returns zeroed sizing for a house with no square footage', () => {
+    const suggestion = suggestSystemSizing(0, 'bestRoi', PRODUCTION_PER_KW);
+    expect(suggestion.estimatedAnnualUsageKwh).toBe(0);
+    expect(suggestion.solarSizeKw).toBe(0);
+    expect(suggestion.batteryCapacityKwh).toBe(0);
+  });
+
+  it('clamps negative house size to zero rather than producing negative sizing', () => {
+    const suggestion = suggestSystemSizing(-500, 'bestRoi', PRODUCTION_PER_KW);
+    expect(suggestion.estimatedAnnualUsageKwh).toBe(0);
+    expect(suggestion.solarSizeKw).toBe(0);
+    expect(suggestion.batteryCapacityKwh).toBe(0);
+  });
+
+  it('returns 0 solar sizing rather than dividing by zero when productionPerKw is 0', () => {
+    const suggestion = suggestSystemSizing(HOUSE_SQFT, 'bestRoi', 0);
+    expect(suggestion.solarSizeKw).toBe(0);
+  });
+});
+
 describe('validateSolarBatteryInputs', () => {
   it('accepts the canonical default input', () => {
     expect(validateSolarBatteryInputs(DEFAULTS)).toEqual({});
@@ -291,6 +377,16 @@ describe('validateSolarBatteryInputs', () => {
   it('flags an out-of-range analysis period', () => {
     const errors = validateSolarBatteryInputs({ ...DEFAULTS, analysisYears: 0 });
     expect(errors.analysisYears).toBeDefined();
+  });
+
+  it('flags an out-of-range panel age', () => {
+    expect(validateSolarBatteryInputs({ ...DEFAULTS, panelAgeYears: -1 }).panelAgeYears).toBeDefined();
+    expect(validateSolarBatteryInputs({ ...DEFAULTS, panelAgeYears: 41 }).panelAgeYears).toBeDefined();
+  });
+
+  it('flags a negative sell-back rate', () => {
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, exportRatePerKwh: -0.01 });
+    expect(errors.exportRatePerKwh).toBeDefined();
   });
 
   it('flags an invalid financeMode', () => {
