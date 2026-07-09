@@ -10,6 +10,8 @@
 import { SOLAR_BATTERY_DEFAULTS } from './constants';
 import type { SolarBatteryConstants } from './constants';
 
+export type SizingProfile = 'minimal' | 'essentials' | 'bestRoi' | 'totalCoverage' | 'offGrid';
+
 export type FinanceMode = 'cash' | 'loan';
 export type SolarCostMode = 'perWatt' | 'total';
 export type BatteryCostMode = 'perKwh' | 'total';
@@ -21,6 +23,8 @@ export type SolarBatteryInputs = {
   solarCostMode: SolarCostMode;
   solarCostPerWatt: number;
   solarTotalCost: number;
+  /** Years the panels have already been in service — for a secondhand purchase, shifts the degradation curve forward. */
+  panelAgeYears: number;
   // Battery
   batteryCapacityKwh: number;
   batteryCostMode: BatteryCostMode;
@@ -45,7 +49,8 @@ export type SolarBatteryInputs = {
   rateEscalationPct: number;
   productionPerKw: number;
   selfConsumptionPct: number;
-  netMeteringPct: number;
+  /** Flat $/kWh credit for exported energy — utilities typically pay an avoided-cost rate, well below retail. */
+  exportRatePerKwh: number;
   systemDegradationPct: number;
   // Analysis
   analysisYears: number;
@@ -148,21 +153,26 @@ export function financeDetails(inputs: SolarBatteryInputs, netCost: number): Fin
 
 // ---------- annual energy & cost primitives ----------
 
-/** Solar production for a given analysis year (1-indexed), net of cumulative panel degradation. */
+/**
+ * Solar production for a given analysis year (1-indexed), net of cumulative panel degradation.
+ * panelAgeYears shifts the degradation curve forward — a secondhand panel already carries
+ * years of prior wear, so year 1 here starts partway down the same degradation curve a new
+ * panel would follow.
+ */
 export function annualProductionKwh(inputs: SolarBatteryInputs, year: number): number {
-  const degradationFactor = Math.pow(1 - inputs.systemDegradationPct / 100, year - 1);
+  const totalAge = Math.max(0, inputs.panelAgeYears) + year - 1;
+  const degradationFactor = Math.pow(1 - inputs.systemDegradationPct / 100, totalAge);
   return inputs.solarSizeKw * inputs.productionPerKw * degradationFactor;
 }
 
-/** Utility bill offset: self-consumed kWh at the escalated retail rate + exported kWh at the net-metering rate. */
+/** Utility bill offset: self-consumed kWh at the escalated retail rate + exported kWh at the flat sell-back rate. */
 export function annualBillSavings(inputs: SolarBatteryInputs, year: number): number {
   const production = annualProductionKwh(inputs, year);
   const selfConsumedKwh = production * (inputs.selfConsumptionPct / 100);
   const exportedKwh = production - selfConsumedKwh;
   const escalatedRate =
     inputs.utilityRatePerKwh * Math.pow(1 + inputs.rateEscalationPct / 100, year - 1);
-  const exportRate = escalatedRate * (inputs.netMeteringPct / 100);
-  return selfConsumedKwh * escalatedRate + exportedKwh * exportRate;
+  return selfConsumedKwh * escalatedRate + exportedKwh * inputs.exportRatePerKwh;
 }
 
 // ---------- cash-flow series & solvers ----------
@@ -261,6 +271,7 @@ const NUMERIC_FIELDS: readonly (keyof SolarBatteryInputs)[] = [
   'solarSizeKw',
   'solarCostPerWatt',
   'solarTotalCost',
+  'panelAgeYears',
   'batteryCapacityKwh',
   'batteryCostPerKwh',
   'batteryTotalCost',
@@ -277,7 +288,7 @@ const NUMERIC_FIELDS: readonly (keyof SolarBatteryInputs)[] = [
   'rateEscalationPct',
   'productionPerKw',
   'selfConsumptionPct',
-  'netMeteringPct',
+  'exportRatePerKwh',
   'systemDegradationPct',
   'analysisYears',
 ];
@@ -293,8 +304,14 @@ export function validateSolarBatteryInputs(
     }
   }
   if (inputs.solarSizeKw < 0) errors.solarSizeKw = 'solarSizeKw must be zero or greater.';
+  if (inputs.panelAgeYears < 0 || inputs.panelAgeYears > 40) {
+    errors.panelAgeYears = 'panelAgeYears must be between 0 and 40.';
+  }
   if (inputs.batteryCapacityKwh < 0) {
     errors.batteryCapacityKwh = 'batteryCapacityKwh must be zero or greater.';
+  }
+  if (inputs.exportRatePerKwh < 0) {
+    errors.exportRatePerKwh = 'exportRatePerKwh must be zero or greater.';
   }
   if (inputs.analysisYears <= 0 || inputs.analysisYears > 40) {
     errors.analysisYears = 'analysisYears must be between 1 and 40.';
@@ -363,5 +380,97 @@ export function computeSolarBattery(
       annualBreakdown,
       sensitivity,
     },
+  };
+}
+
+// ---------- sizing suggestions ----------
+//
+// Given a house size, estimate solar array (kW) and battery (kWh) sizing for
+// four common coverage goals. Usage is estimated from house size via
+// SolarBatteryConstants.usagePerSqFtKwh (see constants.ts for sourcing); solar
+// size targets a percentage of that usage; battery size targets a number of
+// backup days at a fraction of average daily load (whole-house vs
+// essential-circuits-only).
+
+export type SizingProfileConfig = {
+  label: string;
+  description: string;
+  /** % of estimated annual usage the solar array should be sized to produce. */
+  usageCoveragePct: number;
+  /** Days of backup autonomy the battery should be sized to cover. */
+  backupDays: number;
+  /** Fraction of average daily load the backup targets (1 = whole house). */
+  loadFractionForBackup: number;
+};
+
+export const SIZING_PROFILES: Record<SizingProfile, SizingProfileConfig> = {
+  minimal: {
+    label: 'Minimal',
+    description: 'Smallest system worth installing: offsets ~30% of usage, a few hours of backup.',
+    usageCoveragePct: 30,
+    backupDays: 0.25,
+    loadFractionForBackup: 0.3,
+  },
+  essentials: {
+    label: 'Essentials',
+    description:
+      'Offsets ~60% of usage; battery covers key circuits (fridge, wifi, some lights) for about a day.',
+    usageCoveragePct: 60,
+    backupDays: 1,
+    loadFractionForBackup: 0.3,
+  },
+  bestRoi: {
+    label: 'Most cost-effective (best ROI)',
+    description:
+      'Sized to the self-consumption sweet spot (~85% of usage) with a small backup buffer — optimized for payback, not backup depth.',
+    usageCoveragePct: 85,
+    backupDays: 0.5,
+    loadFractionForBackup: 0.3,
+  },
+  totalCoverage: {
+    label: 'Total coverage',
+    description: 'Offsets all usage plus margin; battery covers ~2 days of whole-house backup.',
+    usageCoveragePct: 110,
+    backupDays: 2,
+    loadFractionForBackup: 1,
+  },
+  offGrid: {
+    label: 'Totally off-grid',
+    description:
+      'Solar oversized for winter/cloudy days (~150% of usage) with ~3 days of whole-house battery autonomy — sized for self-sufficiency, but still grid-tied to sell back excess.',
+    usageCoveragePct: 150,
+    backupDays: 3,
+    loadFractionForBackup: 1,
+  },
+};
+
+export type SizingSuggestion = {
+  estimatedAnnualUsageKwh: number;
+  solarSizeKw: number;
+  batteryCapacityKwh: number;
+};
+
+function roundToTenth(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+/** Suggests solar (kW) and battery (kWh) sizing for a house size + coverage goal. */
+export function suggestSystemSizing(
+  houseSqFt: number,
+  profile: SizingProfile,
+  productionPerKw: number,
+  c: SolarBatteryConstants = SOLAR_BATTERY_DEFAULTS,
+): SizingSuggestion {
+  const cfg = SIZING_PROFILES[profile];
+  const estimatedAnnualUsageKwh = Math.max(0, houseSqFt) * c.usagePerSqFtKwh;
+  const targetProductionKwh = estimatedAnnualUsageKwh * (cfg.usageCoveragePct / 100);
+  const solarSizeKw = productionPerKw > 0 ? roundToTenth(targetProductionKwh / productionPerKw) : 0;
+  const dailyUsageKwh = estimatedAnnualUsageKwh / 365;
+  const batteryCapacityKwh = roundToTenth(dailyUsageKwh * cfg.loadFractionForBackup * cfg.backupDays);
+
+  return {
+    estimatedAnnualUsageKwh: Math.round(estimatedAnnualUsageKwh),
+    solarSizeKw,
+    batteryCapacityKwh,
   };
 }

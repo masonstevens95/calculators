@@ -8,9 +8,16 @@ import {
   ResultDisplay,
 } from '@calc/ui';
 import { formatCurrency, formatNumber, formatPercent } from '@calc/domain-utils';
-import { computeSolarBattery } from './domain';
-import type { BatteryCostMode, FinanceMode, SoftCostMode, SolarBatteryInputs, SolarCostMode } from './domain';
-import { SOLAR_BATTERY_INITIAL_INPUTS } from './constants';
+import { computeSolarBattery, suggestSystemSizing, SIZING_PROFILES } from './domain';
+import type {
+  BatteryCostMode,
+  FinanceMode,
+  SizingProfile,
+  SoftCostMode,
+  SolarBatteryInputs,
+  SolarCostMode,
+} from './domain';
+import { DEFAULT_HOUSE_SQFT, SOLAR_BATTERY_INITIAL_INPUTS } from './constants';
 import { AnnualBreakdownChart, CashFlowChart, SensitivityChart } from './charts/SolarBatteryCharts';
 import styles from './Component.module.css';
 
@@ -18,13 +25,37 @@ const DEFAULT_INPUTS: SolarBatteryInputs = { ...SOLAR_BATTERY_INITIAL_INPUTS };
 
 type NumericField = Exclude<keyof SolarBatteryInputs, 'financeMode'>;
 
+const SIZING_PROFILE_ORDER: readonly SizingProfile[] = [
+  'minimal',
+  'essentials',
+  'bestRoi',
+  'totalCoverage',
+  'offGrid',
+];
+
 export function SolarBatteryComponent() {
   const [inputs, setInputs] = useState<SolarBatteryInputs>(DEFAULT_INPUTS);
+  const [houseSqFt, setHouseSqFt] = useState<number | ''>(DEFAULT_HOUSE_SQFT);
+  const [sizingProfile, setSizingProfile] = useState<SizingProfile>('bestRoi');
 
   function setNum(field: NumericField, fallback = 0) {
     return (v: number | '') => {
       setInputs((prev) => ({ ...prev, [field]: v === '' ? fallback : v }));
     };
+  }
+
+  const sizingSuggestion = useMemo(
+    () => suggestSystemSizing(houseSqFt === '' ? 0 : houseSqFt, sizingProfile, inputs.productionPerKw),
+    [houseSqFt, sizingProfile, inputs.productionPerKw],
+  );
+
+  function applyAutofill() {
+    setInputs((prev) => ({
+      ...prev,
+      annualUsageKwh: sizingSuggestion.estimatedAnnualUsageKwh,
+      solarSizeKw: sizingSuggestion.solarSizeKw,
+      batteryCapacityKwh: sizingSuggestion.batteryCapacityKwh,
+    }));
   }
 
   const computation = useMemo(() => computeSolarBattery(inputs), [inputs]);
@@ -65,6 +96,56 @@ export function SolarBatteryComponent() {
         </p>
       </div>
 
+      <section className={`${styles.card} ${styles.sizingCard}`}>
+        <h2 className={styles.cardTitle}>Suggested sizing</h2>
+        <p className={styles.subtitle}>
+          Estimate a starting solar and battery size from your house size and a coverage goal,
+          then autofill the fields below. Usage is estimated regionally; adjust anything
+          afterward.
+        </p>
+        <div className={styles.inputGrid}>
+          <FormField label="House size (sqft)">
+            {({ id, describedBy }) => (
+              <NumberInput
+                id={id}
+                aria-describedby={describedBy}
+                value={houseSqFt}
+                onChange={setHouseSqFt}
+                allowDecimal={false}
+              />
+            )}
+          </FormField>
+          <FormField label="Coverage goal">
+            {({ id }) => (
+              <select
+                id={id}
+                value={sizingProfile}
+                onChange={(e) => setSizingProfile(e.target.value as SizingProfile)}
+                className={styles.select}
+              >
+                {SIZING_PROFILE_ORDER.map((profile) => (
+                  <option key={profile} value={profile}>
+                    {SIZING_PROFILES[profile].label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+        </div>
+        <div className={styles.sizingRow}>
+          <button type="button" className={styles.autofillButton} onClick={applyAutofill}>
+            Autofill solar &amp; battery sizing
+          </button>
+        </div>
+        <p className={styles.sizingPreview} data-testid="sizing-preview">
+          {SIZING_PROFILES[sizingProfile].description} Suggests{' '}
+          <strong>{sizingSuggestion.solarSizeKw} kW</strong> solar and{' '}
+          <strong>{sizingSuggestion.batteryCapacityKwh} kWh</strong> battery for a{' '}
+          {houseSqFt === '' ? 0 : houseSqFt}-sqft home (~
+          {formatNumber(sizingSuggestion.estimatedAnnualUsageKwh)} kWh/yr estimated usage).
+        </p>
+      </section>
+
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Solar</h2>
         <div className={styles.inputGrid}>
@@ -75,6 +156,20 @@ export function SolarBatteryComponent() {
                 aria-describedby={describedBy}
                 value={inputs.solarSizeKw}
                 onChange={setNum('solarSizeKw')}
+              />
+            )}
+          </FormField>
+          <FormField
+            label="Panel age (years, if secondhand)"
+            hint="0 for new panels. For a used purchase, sets how far along the degradation curve the panels already are."
+          >
+            {({ id, describedBy }) => (
+              <NumberInput
+                id={id}
+                aria-describedby={describedBy}
+                value={inputs.panelAgeYears}
+                onChange={setNum('panelAgeYears')}
+                allowDecimal={false}
               />
             )}
           </FormField>
@@ -367,13 +462,16 @@ export function SolarBatteryComponent() {
               />
             )}
           </FormField>
-          <FormField label="Net-metering credit (% of retail)">
+          <FormField
+            label="Sell-back rate ($/kWh)"
+            hint="Flat credit per exported kWh — utilities typically pay an avoided-cost rate well below retail (e.g. Duke Energy runs ~3-4c/kWh)."
+          >
             {({ id, describedBy }) => (
-              <PercentInput
+              <CurrencyInput
                 id={id}
                 aria-describedby={describedBy}
-                value={inputs.netMeteringPct}
-                onChange={setNum('netMeteringPct')}
+                value={inputs.exportRatePerKwh}
+                onChange={setNum('exportRatePerKwh')}
               />
             )}
           </FormField>
@@ -457,7 +555,11 @@ export function SolarBatteryComponent() {
           <ResultDisplay
             label="Est. annual production"
             value={`${formatNumber(r.annualProductionKwh)} kWh/yr`}
-            detail={`${inputs.solarSizeKw} kW array`}
+            detail={
+              inputs.panelAgeYears > 0
+                ? `${inputs.solarSizeKw} kW array, ${inputs.panelAgeYears}yr old panels`
+                : `${inputs.solarSizeKw} kW array`
+            }
           />
           <ResultDisplay
             label={`Index fund alternative (${inputs.indexFundReturnPct}%)`}

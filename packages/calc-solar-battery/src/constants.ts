@@ -8,6 +8,12 @@ export type SolarBatteryConstants = {
   sweepStepPct: number;
   /** Number of years shown in the annual savings/cost breakdown chart. */
   breakdownYears: number;
+  /**
+   * kWh/yr per square foot, used to estimate annual usage from house size in
+   * the sizing suggestion tool. Derived from the Hillsborough, NC defaults
+   * below: ~12,000 kWh/yr / 1,800 sqft.
+   */
+  usagePerSqFtKwh: number;
 };
 
 export const SOLAR_BATTERY_DEFAULTS: SolarBatteryConstants = {
@@ -15,7 +21,11 @@ export const SOLAR_BATTERY_DEFAULTS: SolarBatteryConstants = {
   sweepEndPct: 8,
   sweepStepPct: 1,
   breakdownYears: 15,
+  usagePerSqFtKwh: 6.667,
 };
+
+/** Default house size (sqft) seeded into the sizing suggestion tool. */
+export const DEFAULT_HOUSE_SQFT = 1_800;
 
 /**
  * Initial input values — a realistic mid-size residential system, fully editable.
@@ -28,6 +38,8 @@ export const SOLAR_BATTERY_DEFAULTS: SolarBatteryConstants = {
  *    rate is ~12.5-14c/kWh as of 2026.
  *  - productionPerKw: 1,500 kWh/kW/yr — central NC (Raleigh-Durham-area) solar
  *    yield; scales automatically with solarSizeKw via annualProductionKwh().
+ *  - exportRatePerKwh: $0.035/kWh — Duke Energy's solar export/sell-back rate
+ *    runs ~3-4c/kWh (avoided-cost, not full retail net metering).
  */
 export const SOLAR_BATTERY_INITIAL_INPUTS = {
   // Solar
@@ -35,6 +47,8 @@ export const SOLAR_BATTERY_INITIAL_INPUTS = {
   solarCostMode: 'perWatt' as const,
   solarCostPerWatt: 2.75,
   solarTotalCost: 22_000,
+  /** Defaults to 0 (new panels); set > 0 to model buying secondhand panels. */
+  panelAgeYears: 0,
   // Battery
   batteryCapacityKwh: 13.5,
   batteryCostMode: 'perKwh' as const,
@@ -58,7 +72,7 @@ export const SOLAR_BATTERY_INITIAL_INPUTS = {
   rateEscalationPct: 3,
   productionPerKw: 1_500,
   selfConsumptionPct: 75,
-  netMeteringPct: 100,
+  exportRatePerKwh: 0.035,
   systemDegradationPct: 0.5,
   // Analysis
   analysisYears: 25,
