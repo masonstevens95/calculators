@@ -11,14 +11,25 @@ import { SOLAR_BATTERY_DEFAULTS } from './constants';
 import type { SolarBatteryConstants } from './constants';
 
 export type FinanceMode = 'cash' | 'loan';
+export type SolarCostMode = 'perWatt' | 'total';
+export type BatteryCostMode = 'perKwh' | 'total';
+export type SoftCostMode = 'percent' | 'flat';
 
 export type SolarBatteryInputs = {
-  // System & cost
+  // Solar
   solarSizeKw: number;
+  solarCostMode: SolarCostMode;
   solarCostPerWatt: number;
+  solarTotalCost: number;
+  // Battery
   batteryCapacityKwh: number;
+  batteryCostMode: BatteryCostMode;
   batteryCostPerKwh: number;
+  batteryTotalCost: number;
+  // Costs & incentives
+  softCostsMode: SoftCostMode;
   softCostsPct: number;
+  softCostsFlat: number;
   federalItcPct: number;
   stateRebate: number;
   // Financing
@@ -83,11 +94,27 @@ export type ComputeSolarBatteryResult =
 
 // ---------- cost & financing primitives ----------
 
+export function solarHardwareCost(inputs: SolarBatteryInputs): number {
+  return inputs.solarCostMode === 'total'
+    ? inputs.solarTotalCost
+    : inputs.solarSizeKw * 1000 * inputs.solarCostPerWatt;
+}
+
+export function batteryHardwareCost(inputs: SolarBatteryInputs): number {
+  return inputs.batteryCostMode === 'total'
+    ? inputs.batteryTotalCost
+    : inputs.batteryCapacityKwh * inputs.batteryCostPerKwh;
+}
+
+export function softCostAmount(inputs: SolarBatteryInputs, hardwareCost: number): number {
+  return inputs.softCostsMode === 'flat'
+    ? inputs.softCostsFlat
+    : hardwareCost * (inputs.softCostsPct / 100);
+}
+
 export function systemCost(inputs: SolarBatteryInputs): SystemCost {
-  const solarCost = inputs.solarSizeKw * 1000 * inputs.solarCostPerWatt;
-  const batteryCost = inputs.batteryCapacityKwh * inputs.batteryCostPerKwh;
-  const hardwareCost = solarCost + batteryCost;
-  const grossCost = hardwareCost * (1 + inputs.softCostsPct / 100);
+  const hardwareCost = solarHardwareCost(inputs) + batteryHardwareCost(inputs);
+  const grossCost = hardwareCost + softCostAmount(inputs, hardwareCost);
   const itcAmount = grossCost * (inputs.federalItcPct / 100);
   const netCost = Math.max(0, grossCost - itcAmount - inputs.stateRebate);
   return { hardwareCost, grossCost, itcAmount, netCost };
@@ -204,9 +231,12 @@ export function sensitivitySweep(
 const NUMERIC_FIELDS: readonly (keyof SolarBatteryInputs)[] = [
   'solarSizeKw',
   'solarCostPerWatt',
+  'solarTotalCost',
   'batteryCapacityKwh',
   'batteryCostPerKwh',
+  'batteryTotalCost',
   'softCostsPct',
+  'softCostsFlat',
   'federalItcPct',
   'stateRebate',
   'downPaymentPct',
@@ -244,6 +274,15 @@ export function validateSolarBatteryInputs(
   }
   if (inputs.financeMode !== 'cash' && inputs.financeMode !== 'loan') {
     errors.financeMode = 'financeMode must be cash or loan.';
+  }
+  if (inputs.solarCostMode !== 'perWatt' && inputs.solarCostMode !== 'total') {
+    errors.solarCostMode = 'solarCostMode must be perWatt or total.';
+  }
+  if (inputs.batteryCostMode !== 'perKwh' && inputs.batteryCostMode !== 'total') {
+    errors.batteryCostMode = 'batteryCostMode must be perKwh or total.';
+  }
+  if (inputs.softCostsMode !== 'percent' && inputs.softCostsMode !== 'flat') {
+    errors.softCostsMode = 'softCostsMode must be percent or flat.';
   }
   return errors;
 }

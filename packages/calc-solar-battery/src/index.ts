@@ -2,6 +2,9 @@ export { default, SolarBatteryComponent } from './Component';
 export {
   computeSolarBattery,
   systemCost,
+  solarHardwareCost,
+  batteryHardwareCost,
+  softCostAmount,
   monthlyLoanPayment,
   financeDetails,
   annualProductionKwh,
@@ -14,6 +17,9 @@ export {
 } from './domain';
 export type {
   FinanceMode,
+  SolarCostMode,
+  BatteryCostMode,
+  SoftCostMode,
   SolarBatteryInputs,
   SolarBatteryOutput,
   SystemCost,

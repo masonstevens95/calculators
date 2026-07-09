@@ -4,6 +4,9 @@ import { describe, it, expect } from 'vitest';
 import {
   computeSolarBattery,
   systemCost,
+  solarHardwareCost,
+  batteryHardwareCost,
+  softCostAmount,
   monthlyLoanPayment,
   financeDetails,
   annualProductionKwh,
@@ -20,12 +23,59 @@ const DOLLAR = 2;
 
 const DEFAULTS: SolarBatteryInputs = { ...SOLAR_BATTERY_INITIAL_INPUTS };
 
+describe('solarHardwareCost', () => {
+  it('per-watt mode: size (W) times cost per watt', () => {
+    expect(solarHardwareCost(DEFAULTS)).toBeCloseTo(
+      DEFAULTS.solarSizeKw * 1000 * DEFAULTS.solarCostPerWatt,
+      DOLLAR,
+    );
+  });
+
+  it('total mode: uses the flat total cost, ignoring size and per-watt cost', () => {
+    const totalMode: SolarBatteryInputs = {
+      ...DEFAULTS,
+      solarCostMode: 'total',
+      solarTotalCost: 19_999,
+    };
+    expect(solarHardwareCost(totalMode)).toBe(19_999);
+  });
+});
+
+describe('batteryHardwareCost', () => {
+  it('per-kWh mode: capacity times cost per kWh', () => {
+    expect(batteryHardwareCost(DEFAULTS)).toBeCloseTo(
+      DEFAULTS.batteryCapacityKwh * DEFAULTS.batteryCostPerKwh,
+      DOLLAR,
+    );
+  });
+
+  it('total mode: uses the flat total cost, ignoring capacity and per-kWh cost', () => {
+    const totalMode: SolarBatteryInputs = {
+      ...DEFAULTS,
+      batteryCostMode: 'total',
+      batteryTotalCost: 8_888,
+    };
+    expect(batteryHardwareCost(totalMode)).toBe(8_888);
+  });
+});
+
+describe('softCostAmount', () => {
+  it('percent mode: a percentage of hardware cost', () => {
+    expect(softCostAmount(DEFAULTS, 30_000)).toBeCloseTo(30_000 * (DEFAULTS.softCostsPct / 100), DOLLAR);
+  });
+
+  it('flat mode: the flat dollar amount, independent of hardware cost', () => {
+    const flatMode: SolarBatteryInputs = { ...DEFAULTS, softCostsMode: 'flat', softCostsFlat: 2_500 };
+    expect(softCostAmount(flatMode, 30_000)).toBe(2_500);
+    expect(softCostAmount(flatMode, 999_999)).toBe(2_500);
+  });
+});
+
 describe('systemCost', () => {
   it('sums hardware, applies soft costs, ITC, and rebate', () => {
-    const solar = DEFAULTS.solarSizeKw * 1000 * DEFAULTS.solarCostPerWatt;
-    const battery = DEFAULTS.batteryCapacityKwh * DEFAULTS.batteryCostPerKwh;
-    const hardware = solar + battery;
-    const gross = hardware * (1 + DEFAULTS.softCostsPct / 100);
+    const hardware = solarHardwareCost(DEFAULTS) + batteryHardwareCost(DEFAULTS);
+    const soft = softCostAmount(DEFAULTS, hardware);
+    const gross = hardware + soft;
     const itc = gross * (DEFAULTS.federalItcPct / 100);
     const net = gross - itc - DEFAULTS.stateRebate;
 
@@ -34,6 +84,18 @@ describe('systemCost', () => {
     expect(result.grossCost).toBeCloseTo(gross, DOLLAR);
     expect(result.itcAmount).toBeCloseTo(itc, DOLLAR);
     expect(result.netCost).toBeCloseTo(net, DOLLAR);
+  });
+
+  it('matches between equivalent per-unit and total-cost inputs', () => {
+    const perUnit = systemCost(DEFAULTS);
+    const totalMode: SolarBatteryInputs = {
+      ...DEFAULTS,
+      solarCostMode: 'total',
+      solarTotalCost: DEFAULTS.solarSizeKw * 1000 * DEFAULTS.solarCostPerWatt,
+      batteryCostMode: 'total',
+      batteryTotalCost: DEFAULTS.batteryCapacityKwh * DEFAULTS.batteryCostPerKwh,
+    };
+    expect(systemCost(totalMode).netCost).toBeCloseTo(perUnit.netCost, DOLLAR);
   });
 
   it('never returns a negative net cost even with a large rebate', () => {
@@ -211,6 +273,21 @@ describe('validateSolarBatteryInputs', () => {
       financeMode: 'other' as never,
     });
     expect(errors.financeMode).toBeDefined();
+  });
+
+  it('flags an invalid solarCostMode', () => {
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, solarCostMode: 'other' as never });
+    expect(errors.solarCostMode).toBeDefined();
+  });
+
+  it('flags an invalid batteryCostMode', () => {
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, batteryCostMode: 'other' as never });
+    expect(errors.batteryCostMode).toBeDefined();
+  });
+
+  it('flags an invalid softCostsMode', () => {
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, softCostsMode: 'other' as never });
+    expect(errors.softCostsMode).toBeDefined();
   });
 });
 

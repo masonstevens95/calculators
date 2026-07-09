@@ -12,6 +12,12 @@ describe('<SolarBatteryComponent />', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders Solar and Battery as separate card sections', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByRole('heading', { name: 'Solar', level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Battery', level: 2 })).toBeInTheDocument();
+  });
+
   it('renders core system, financing, and energy inputs', () => {
     render(<SolarBatteryComponent />);
     expect(screen.getByLabelText(/solar array size \(kw\)/i)).toBeInTheDocument();
@@ -25,6 +31,38 @@ describe('<SolarBatteryComponent />', () => {
   it('does NOT render a generator section', () => {
     render(<SolarBatteryComponent />);
     expect(screen.queryByText(/generator/i)).not.toBeInTheDocument();
+  });
+
+  it('toggles solar cost input between per-watt and total system cost', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByLabelText('Solar cost per watt')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Total solar cost')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/solar cost basis/i), { target: { value: 'total' } });
+
+    expect(screen.getByLabelText('Total solar cost')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Solar cost per watt')).not.toBeInTheDocument();
+  });
+
+  it('toggles battery cost input between per-kWh and total system cost', () => {
+    render(<SolarBatteryComponent />);
+    expect(screen.getByLabelText('Battery cost per kWh')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Total battery cost')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/battery cost basis/i), { target: { value: 'total' } });
+
+    expect(screen.getByLabelText('Total battery cost')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Battery cost per kWh')).not.toBeInTheDocument();
+  });
+
+  it('toggles soft costs between percent and flat dollar amount', () => {
+    render(<SolarBatteryComponent />);
+    const softCostsField = () => screen.getByLabelText('Soft costs (permitting/install)');
+    expect(softCostsField().parentElement?.textContent).toContain('%');
+
+    fireEvent.change(screen.getByLabelText(/soft costs basis/i), { target: { value: 'flat' } });
+
+    expect(softCostsField().parentElement?.textContent).toContain('$');
   });
 
   it('hides loan-only fields when payment method is Cash', () => {

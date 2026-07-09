@@ -9,7 +9,7 @@ import {
 } from '@calc/ui';
 import { formatCurrency, formatPercent } from '@calc/domain-utils';
 import { computeSolarBattery } from './domain';
-import type { FinanceMode, SolarBatteryInputs } from './domain';
+import type { BatteryCostMode, FinanceMode, SoftCostMode, SolarBatteryInputs, SolarCostMode } from './domain';
 import { SOLAR_BATTERY_INITIAL_INPUTS } from './constants';
 import { AnnualBreakdownChart, CashFlowChart, SensitivityChart } from './charts/SolarBatteryCharts';
 import styles from './Component.module.css';
@@ -48,6 +48,9 @@ export function SolarBatteryComponent() {
   const r = computation.result;
   const paysBack = r.paybackYears !== null;
   const isLoan = inputs.financeMode === 'loan';
+  const isSolarTotal = inputs.solarCostMode === 'total';
+  const isBatteryTotal = inputs.batteryCostMode === 'total';
+  const isSoftCostFlat = inputs.softCostsMode === 'flat';
 
   return (
     <section className={styles.layout} aria-labelledby="solar-battery-heading">
@@ -63,7 +66,7 @@ export function SolarBatteryComponent() {
       </div>
 
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>System &amp; cost</h2>
+        <h2 className={styles.cardTitle}>Solar</h2>
         <div className={styles.inputGrid}>
           <FormField label="Solar array size (kW)">
             {({ id, describedBy }) => (
@@ -75,16 +78,53 @@ export function SolarBatteryComponent() {
               />
             )}
           </FormField>
-          <FormField label="Solar cost per watt">
-            {({ id, describedBy }) => (
-              <CurrencyInput
+          <FormField label="Solar cost basis">
+            {({ id }) => (
+              <select
                 id={id}
-                aria-describedby={describedBy}
-                value={inputs.solarCostPerWatt}
-                onChange={setNum('solarCostPerWatt')}
-              />
+                value={inputs.solarCostMode}
+                onChange={(e) =>
+                  setInputs((prev) => ({
+                    ...prev,
+                    solarCostMode: e.target.value as SolarCostMode,
+                  }))
+                }
+                className={styles.select}
+              >
+                <option value="perWatt">Cost per watt</option>
+                <option value="total">Total system cost</option>
+              </select>
             )}
           </FormField>
+          {isSolarTotal ? (
+            <FormField label="Total solar cost">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.solarTotalCost}
+                  onChange={setNum('solarTotalCost')}
+                />
+              )}
+            </FormField>
+          ) : (
+            <FormField label="Solar cost per watt">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.solarCostPerWatt}
+                  onChange={setNum('solarCostPerWatt')}
+                />
+              )}
+            </FormField>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Battery</h2>
+        <div className={styles.inputGrid}>
           <FormField label="Battery capacity (kWh)">
             {({ id, describedBy }) => (
               <NumberInput
@@ -95,26 +135,94 @@ export function SolarBatteryComponent() {
               />
             )}
           </FormField>
-          <FormField label="Battery cost per kWh">
-            {({ id, describedBy }) => (
-              <CurrencyInput
+          <FormField label="Battery cost basis">
+            {({ id }) => (
+              <select
                 id={id}
-                aria-describedby={describedBy}
-                value={inputs.batteryCostPerKwh}
-                onChange={setNum('batteryCostPerKwh')}
-              />
+                value={inputs.batteryCostMode}
+                onChange={(e) =>
+                  setInputs((prev) => ({
+                    ...prev,
+                    batteryCostMode: e.target.value as BatteryCostMode,
+                  }))
+                }
+                className={styles.select}
+              >
+                <option value="perKwh">Cost per kWh</option>
+                <option value="total">Total system cost</option>
+              </select>
             )}
           </FormField>
-          <FormField label="Soft costs (permitting/install)">
-            {({ id, describedBy }) => (
-              <PercentInput
+          {isBatteryTotal ? (
+            <FormField label="Total battery cost">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.batteryTotalCost}
+                  onChange={setNum('batteryTotalCost')}
+                />
+              )}
+            </FormField>
+          ) : (
+            <FormField label="Battery cost per kWh">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.batteryCostPerKwh}
+                  onChange={setNum('batteryCostPerKwh')}
+                />
+              )}
+            </FormField>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Costs &amp; incentives</h2>
+        <div className={styles.inputGrid}>
+          <FormField label="Soft costs basis">
+            {({ id }) => (
+              <select
                 id={id}
-                aria-describedby={describedBy}
-                value={inputs.softCostsPct}
-                onChange={setNum('softCostsPct')}
-              />
+                value={inputs.softCostsMode}
+                onChange={(e) =>
+                  setInputs((prev) => ({
+                    ...prev,
+                    softCostsMode: e.target.value as SoftCostMode,
+                  }))
+                }
+                className={styles.select}
+              >
+                <option value="percent">Percent of hardware</option>
+                <option value="flat">Flat dollar amount</option>
+              </select>
             )}
           </FormField>
+          {isSoftCostFlat ? (
+            <FormField label="Soft costs (permitting/install)">
+              {({ id, describedBy }) => (
+                <CurrencyInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.softCostsFlat}
+                  onChange={setNum('softCostsFlat')}
+                />
+              )}
+            </FormField>
+          ) : (
+            <FormField label="Soft costs (permitting/install)">
+              {({ id, describedBy }) => (
+                <PercentInput
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={inputs.softCostsPct}
+                  onChange={setNum('softCostsPct')}
+                />
+              )}
+            </FormField>
+          )}
           <FormField label="Federal ITC">
             {({ id, describedBy }) => (
               <PercentInput
