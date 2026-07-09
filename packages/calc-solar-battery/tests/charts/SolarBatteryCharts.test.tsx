@@ -35,13 +35,13 @@ describe('Solar + Battery charts smoke', () => {
     render(
       <AnnualBreakdownChart
         points={[
-          { year: 1, billSavings: 2_000, debtService: 1_500 },
-          { year: 2, billSavings: 2_100, debtService: 1_500 },
+          { year: 1, billSavings: 2_000, arbitrageValue: 150, debtService: 1_500 },
+          { year: 2, billSavings: 2_100, arbitrageValue: 155, debtService: 1_500 },
         ]}
       />,
     );
     expect(
-      screen.getByRole('img', { name: /annual bill savings vs loan payment/i }),
+      screen.getByRole('img', { name: /annual bill savings vs tou arbitrage and loan payment/i }),
     ).toBeInTheDocument();
   });
 

@@ -40,6 +40,12 @@ export const DEFAULT_HOUSE_SQFT = 1_800;
  *    yield; scales automatically with solarSizeKw via annualProductionKwh().
  *  - exportRatePerKwh: $0.035/kWh — Duke Energy's solar export/sell-back rate
  *    runs ~3-4c/kWh (avoided-cost, not full retail net metering).
+ *
+ * TOU arbitrage defaults (off by default) are Duke Energy Progress's Flex Savings
+ * Option time-of-use plan (Raleigh/Hillsborough territory): discount-hour rate
+ * $0.0688/kWh (charge), on-peak rate $0.208/kWh (avoided by discharging), on-peak
+ * windows fall on weekdays only (~250 days/yr) — weekends/holidays are always
+ * off-peak. See duke-energy.com/home/billing/flex-savings-option.
  */
 export const SOLAR_BATTERY_INITIAL_INPUTS = {
   // Solar
@@ -54,6 +60,11 @@ export const SOLAR_BATTERY_INITIAL_INPUTS = {
   batteryCostMode: 'perKwh' as const,
   batteryCostPerKwh: 700,
   batteryTotalCost: 9_450,
+  batteryRoundTripEffPct: 90,
+  touArbitrageEnabled: false,
+  touOffPeakRatePerKwh: 0.0688,
+  touOnPeakRatePerKwh: 0.208,
+  touDaysPerYear: 250,
   // Costs & incentives
   softCostsMode: 'percent' as const,
   softCostsPct: 10,

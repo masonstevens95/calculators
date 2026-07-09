@@ -275,6 +275,90 @@ export function SolarBatteryComponent() {
       </section>
 
       <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Battery arbitrage (TOU)</h2>
+        <p className={styles.subtitle}>
+          On a time-of-use rate plan, a battery can earn on its own: charge from the grid
+          during the cheap off-peak window, discharge to avoid buying grid power during the
+          expensive on-peak window. Off by default — only pays off if you&apos;re enrolled in
+          a TOU rate plan.
+        </p>
+        <div className={styles.inputGrid}>
+          <FormField label="TOU arbitrage">
+            {({ id }) => (
+              <select
+                id={id}
+                value={inputs.touArbitrageEnabled ? 'on' : 'off'}
+                onChange={(e) =>
+                  setInputs((prev) => ({
+                    ...prev,
+                    touArbitrageEnabled: e.target.value === 'on',
+                  }))
+                }
+                className={styles.select}
+              >
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+            )}
+          </FormField>
+          {inputs.touArbitrageEnabled && (
+            <>
+              <FormField
+                label="Off-peak charge rate ($/kWh)"
+                hint="Duke Energy Progress Flex Savings Option discount rate: $0.0688/kWh."
+              >
+                {({ id, describedBy }) => (
+                  <CurrencyInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.touOffPeakRatePerKwh}
+                    onChange={setNum('touOffPeakRatePerKwh')}
+                  />
+                )}
+              </FormField>
+              <FormField
+                label="On-peak avoided rate ($/kWh)"
+                hint="Duke Energy Progress Flex Savings Option on-peak rate: $0.208/kWh."
+              >
+                {({ id, describedBy }) => (
+                  <CurrencyInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.touOnPeakRatePerKwh}
+                    onChange={setNum('touOnPeakRatePerKwh')}
+                  />
+                )}
+              </FormField>
+              <FormField label="Round-trip efficiency">
+                {({ id, describedBy }) => (
+                  <PercentInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.batteryRoundTripEffPct}
+                    onChange={setNum('batteryRoundTripEffPct')}
+                  />
+                )}
+              </FormField>
+              <FormField
+                label="Arbitrage days/year"
+                hint="On-peak windows are weekdays only — weekends/holidays are always off-peak."
+              >
+                {({ id, describedBy }) => (
+                  <NumberInput
+                    id={id}
+                    aria-describedby={describedBy}
+                    value={inputs.touDaysPerYear}
+                    onChange={setNum('touDaysPerYear', 250)}
+                    allowDecimal={false}
+                  />
+                )}
+              </FormField>
+            </>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.card}>
         <h2 className={styles.cardTitle}>Costs &amp; incentives</h2>
         <div className={styles.inputGrid}>
           <FormField label="Soft costs basis">
@@ -566,6 +650,13 @@ export function SolarBatteryComponent() {
             value={formatCurrency(r.indexFundGain, { maximumFractionDigits: 0 })}
             detail={r.solarBeatsIndexFund ? 'solar + battery wins' : 'index fund wins'}
           />
+          {inputs.touArbitrageEnabled && (
+            <ResultDisplay
+              label="Battery arbitrage (Yr 1)"
+              value={`${formatCurrency(r.year1ArbitrageValue, { maximumFractionDigits: 0 })}/yr`}
+              detail={`${inputs.touDaysPerYear} days/yr, ${inputs.batteryRoundTripEffPct}% round-trip`}
+            />
+          )}
         </div>
 
         <h2 className={styles.sectionHeading}>Cumulative Cash Flow</h2>

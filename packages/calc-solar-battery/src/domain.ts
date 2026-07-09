@@ -30,6 +30,17 @@ export type SolarBatteryInputs = {
   batteryCostMode: BatteryCostMode;
   batteryCostPerKwh: number;
   batteryTotalCost: number;
+  /** Energy out / energy in for a full charge-discharge cycle. */
+  batteryRoundTripEffPct: number;
+  // Battery TOU arbitrage — charge at the cheap rate, discharge to avoid the expensive
+  // rate. Off by default: it only pays off on a time-of-use rate plan, not a flat rate.
+  touArbitrageEnabled: boolean;
+  /** Rate paid to charge the battery during the cheapest TOU window. */
+  touOffPeakRatePerKwh: number;
+  /** Retail rate avoided by discharging instead of buying grid power during the on-peak window. */
+  touOnPeakRatePerKwh: number;
+  /** Days/year the arbitrage cycle applies — on-peak windows are typically weekdays only. */
+  touDaysPerYear: number;
   // Costs & incentives
   softCostsMode: SoftCostMode;
   softCostsPct: number;
@@ -73,6 +84,7 @@ export type CashFlowPoint = { year: number; cumulative: number; net: number };
 export type AnnualBreakdownPoint = {
   year: number;
   billSavings: number;
+  arbitrageValue: number;
   debtService: number;
 };
 export type SensitivityPoint = { rateEscalationPct: number; paybackYears: number | null };
@@ -86,6 +98,8 @@ export type SolarBatteryOutput = {
   loanAmount: number;
   annualDebtService: number;
   year1Savings: number;
+  /** First-year TOU arbitrage value — 0 unless touArbitrageEnabled. */
+  year1ArbitrageValue: number;
   /** First-year solar production (kWh), before degradation — scales automatically with solarSizeKw. */
   annualProductionKwh: number;
   /** Fractional year the cumulative cash flow first reaches zero, or null if it never does within analysisYears. */
@@ -175,6 +189,28 @@ export function annualBillSavings(inputs: SolarBatteryInputs, year: number): num
   return selfConsumedKwh * escalatedRate + exportedKwh * inputs.exportRatePerKwh;
 }
 
+/**
+ * Value of cycling the battery on a time-of-use rate: charge from the grid during the
+ * cheap off-peak window, discharge to avoid buying grid power during the expensive
+ * on-peak window. Independent of solar — this is what a battery earns on its own.
+ *
+ * Simplifying assumptions: one full charge/discharge cycle per applicable day, using the
+ * full battery capacity, with no contention from backup or solar self-consumption use of
+ * the same capacity. Charging cost is grid power at the off-peak rate divided by
+ * round-trip efficiency (you must buy more than you get back); discharge value is the
+ * on-peak retail rate avoided. Both rates escalate with rateEscalationPct like the main
+ * utility rate. Requires enrollment in a TOU rate plan — off by default.
+ */
+export function annualArbitrageValue(inputs: SolarBatteryInputs, year: number): number {
+  if (!inputs.touArbitrageEnabled || inputs.batteryCapacityKwh <= 0) return 0;
+  const escalation = Math.pow(1 + inputs.rateEscalationPct / 100, year - 1);
+  const efficiency = Math.max(0.01, inputs.batteryRoundTripEffPct / 100);
+  const chargeCostPerKwh = (inputs.touOffPeakRatePerKwh * escalation) / efficiency;
+  const dischargeValuePerKwh = inputs.touOnPeakRatePerKwh * escalation;
+  const netValuePerKwhCycled = Math.max(0, dischargeValuePerKwh - chargeCostPerKwh);
+  return netValuePerKwhCycled * inputs.batteryCapacityKwh * inputs.touDaysPerYear;
+}
+
 // ---------- cash-flow series & solvers ----------
 
 export function cashFlowSeries(inputs: SolarBatteryInputs): CashFlowPoint[] {
@@ -187,8 +223,9 @@ export function cashFlowSeries(inputs: SolarBatteryInputs): CashFlowPoint[] {
   let cumulative = -upfrontCash;
   for (let year = 1; year <= N; year++) {
     const billSavings = annualBillSavings(inputs, year);
+    const arbitrageValue = annualArbitrageValue(inputs, year);
     const debtService = year <= loanYears ? annualDebtService : 0;
-    const net = billSavings - debtService;
+    const net = billSavings + arbitrageValue - debtService;
     cumulative += net;
     points.push({ year, cumulative, net });
   }
@@ -230,6 +267,7 @@ export function annualBreakdownSeries(
     points.push({
       year,
       billSavings: annualBillSavings(inputs, year),
+      arbitrageValue: annualArbitrageValue(inputs, year),
       debtService: year <= loanYears ? annualDebtService : 0,
     });
   }
@@ -275,6 +313,10 @@ const NUMERIC_FIELDS: readonly (keyof SolarBatteryInputs)[] = [
   'batteryCapacityKwh',
   'batteryCostPerKwh',
   'batteryTotalCost',
+  'batteryRoundTripEffPct',
+  'touOffPeakRatePerKwh',
+  'touOnPeakRatePerKwh',
+  'touDaysPerYear',
   'softCostsPct',
   'softCostsFlat',
   'federalItcPct',
@@ -309,6 +351,21 @@ export function validateSolarBatteryInputs(
   }
   if (inputs.batteryCapacityKwh < 0) {
     errors.batteryCapacityKwh = 'batteryCapacityKwh must be zero or greater.';
+  }
+  if (inputs.batteryRoundTripEffPct <= 0 || inputs.batteryRoundTripEffPct > 100) {
+    errors.batteryRoundTripEffPct = 'batteryRoundTripEffPct must be between 0 and 100.';
+  }
+  if (inputs.touOffPeakRatePerKwh < 0) {
+    errors.touOffPeakRatePerKwh = 'touOffPeakRatePerKwh must be zero or greater.';
+  }
+  if (inputs.touOnPeakRatePerKwh < 0) {
+    errors.touOnPeakRatePerKwh = 'touOnPeakRatePerKwh must be zero or greater.';
+  }
+  if (inputs.touDaysPerYear < 0 || inputs.touDaysPerYear > 366) {
+    errors.touDaysPerYear = 'touDaysPerYear must be between 0 and 366.';
+  }
+  if (typeof inputs.touArbitrageEnabled !== 'boolean') {
+    errors.touArbitrageEnabled = 'touArbitrageEnabled must be true or false.';
   }
   if (inputs.exportRatePerKwh < 0) {
     errors.exportRatePerKwh = 'exportRatePerKwh must be zero or greater.';
@@ -353,6 +410,7 @@ export function computeSolarBattery(
   const sensitivity = sensitivitySweep(inputs, c);
   const paybackYears = solvePaybackYears(inputs);
   const year1Savings = annualBillSavings(inputs, 1);
+  const year1ArbitrageValue = annualArbitrageValue(inputs, 1);
   const annualProduction = annualProductionKwh(inputs, 1);
   const lifetimeNetProfit = cashFlowOverTime[cashFlowOverTime.length - 1]!.cumulative;
   const indexFundGain = indexFundOverTime[indexFundOverTime.length - 1]!.cumulative;
@@ -369,6 +427,7 @@ export function computeSolarBattery(
       loanAmount,
       annualDebtService,
       year1Savings,
+      year1ArbitrageValue,
       annualProductionKwh: annualProduction,
       paybackYears,
       lifetimeNetProfit,

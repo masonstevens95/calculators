@@ -11,6 +11,7 @@ import {
   financeDetails,
   annualProductionKwh,
   annualBillSavings,
+  annualArbitrageValue,
   cashFlowSeries,
   indexFundSeries,
   solvePaybackYears,
@@ -194,6 +195,48 @@ describe('annualBillSavings', () => {
     const y1 = annualBillSavings(DEFAULTS, 1);
     const y5 = annualBillSavings(DEFAULTS, 5);
     expect(y5).toBeGreaterThan(y1);
+  });
+});
+
+describe('annualArbitrageValue', () => {
+  const arbitrageOn: SolarBatteryInputs = { ...DEFAULTS, touArbitrageEnabled: true };
+
+  it('is 0 when arbitrage is disabled, regardless of rates', () => {
+    expect(annualArbitrageValue(DEFAULTS, 1)).toBe(0);
+  });
+
+  it('is 0 when the battery has no capacity', () => {
+    expect(annualArbitrageValue({ ...arbitrageOn, batteryCapacityKwh: 0 }, 1)).toBe(0);
+  });
+
+  it('matches (onPeak - offPeak/efficiency) * capacity * days when enabled', () => {
+    const efficiency = arbitrageOn.batteryRoundTripEffPct / 100;
+    const netPerKwh = arbitrageOn.touOnPeakRatePerKwh - arbitrageOn.touOffPeakRatePerKwh / efficiency;
+    const expected = netPerKwh * arbitrageOn.batteryCapacityKwh * arbitrageOn.touDaysPerYear;
+    expect(annualArbitrageValue(arbitrageOn, 1)).toBeCloseTo(expected, DOLLAR);
+  });
+
+  it('is never negative even if off-peak/efficiency costs exceed the on-peak rate', () => {
+    const unprofitable: SolarBatteryInputs = {
+      ...arbitrageOn,
+      touOffPeakRatePerKwh: 0.5,
+      touOnPeakRatePerKwh: 0.1,
+    };
+    expect(annualArbitrageValue(unprofitable, 1)).toBe(0);
+  });
+
+  it('scales with battery capacity', () => {
+    const doubled: SolarBatteryInputs = {
+      ...arbitrageOn,
+      batteryCapacityKwh: arbitrageOn.batteryCapacityKwh * 2,
+    };
+    expect(annualArbitrageValue(doubled, 1)).toBeCloseTo(annualArbitrageValue(arbitrageOn, 1) * 2, DOLLAR);
+  });
+
+  it('escalates with the utility rate escalation over time', () => {
+    const y1 = annualArbitrageValue(arbitrageOn, 1);
+    const y10 = annualArbitrageValue(arbitrageOn, 10);
+    expect(y10).toBeGreaterThan(y1);
   });
 });
 
@@ -389,6 +432,32 @@ describe('validateSolarBatteryInputs', () => {
     expect(errors.exportRatePerKwh).toBeDefined();
   });
 
+  it('flags an out-of-range battery round-trip efficiency', () => {
+    expect(
+      validateSolarBatteryInputs({ ...DEFAULTS, batteryRoundTripEffPct: 0 }).batteryRoundTripEffPct,
+    ).toBeDefined();
+    expect(
+      validateSolarBatteryInputs({ ...DEFAULTS, batteryRoundTripEffPct: 101 }).batteryRoundTripEffPct,
+    ).toBeDefined();
+  });
+
+  it('flags negative TOU rates and an out-of-range days/year', () => {
+    expect(
+      validateSolarBatteryInputs({ ...DEFAULTS, touOffPeakRatePerKwh: -0.01 }).touOffPeakRatePerKwh,
+    ).toBeDefined();
+    expect(
+      validateSolarBatteryInputs({ ...DEFAULTS, touOnPeakRatePerKwh: -0.01 }).touOnPeakRatePerKwh,
+    ).toBeDefined();
+    expect(
+      validateSolarBatteryInputs({ ...DEFAULTS, touDaysPerYear: 400 }).touDaysPerYear,
+    ).toBeDefined();
+  });
+
+  it('flags an invalid touArbitrageEnabled', () => {
+    const errors = validateSolarBatteryInputs({ ...DEFAULTS, touArbitrageEnabled: 'yes' as never });
+    expect(errors.touArbitrageEnabled).toBeDefined();
+  });
+
   it('flags an invalid financeMode', () => {
     const errors = validateSolarBatteryInputs({
       ...DEFAULTS,
@@ -458,5 +527,21 @@ describe('computeSolarBattery (default scenario)', () => {
     expect(result.result.solarBeatsIndexFund).toBe(
       result.result.lifetimeNetProfit > result.result.indexFundGain,
     );
+  });
+
+  it('year1ArbitrageValue is 0 by default and positive once TOU arbitrage is enabled', () => {
+    const off = computeSolarBattery(DEFAULTS);
+    const on = computeSolarBattery({ ...DEFAULTS, touArbitrageEnabled: true });
+    if (!off.ok || !on.ok) throw new Error('expected ok results');
+    expect(off.result.year1ArbitrageValue).toBe(0);
+    expect(on.result.year1ArbitrageValue).toBeGreaterThan(0);
+  });
+
+  it('enabling TOU arbitrage improves lifetimeNetProfit without changing net system cost', () => {
+    const off = computeSolarBattery(DEFAULTS);
+    const on = computeSolarBattery({ ...DEFAULTS, touArbitrageEnabled: true });
+    if (!off.ok || !on.ok) throw new Error('expected ok results');
+    expect(on.result.netCost).toBeCloseTo(off.result.netCost, DOLLAR);
+    expect(on.result.lifetimeNetProfit).toBeGreaterThan(off.result.lifetimeNetProfit);
   });
 });
